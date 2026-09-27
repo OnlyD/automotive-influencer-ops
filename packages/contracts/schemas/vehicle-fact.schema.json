@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/schemas/v1.0.0/vehicle-fact.schema.json",
+  "title": "VehicleFact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["vehicleFactId", "vehicleId", "field", "value", "unit", "scope", "verificationStatus", "sourceIds", "verifiedAt", "verifiedBy", "validUntil", "notes"],
+  "properties": {
+    "vehicleFactId": { "type": "string", "pattern": "^fact_[a-zA-Z0-9_-]+$" },
+    "vehicleId": { "type": "string", "pattern": "^veh_[a-zA-Z0-9_-]+$" },
+    "field": { "type": "string", "minLength": 1 },
+    "value": { "type": ["string", "number", "boolean", "array", "object"] },
+    "unit": { "type": ["string", "null"] },
+    "scope": { "enum": ["UNIT", "MODEL_TRIM", "MODEL_YEAR", "MARKET"] },
+    "verificationStatus": { "enum": ["UNVERIFIED", "IN_REVIEW", "VERIFIED", "CONFLICTED", "STALE"] },
+    "sourceIds": { "type": "array", "items": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" }, "uniqueItems": true },
+    "verifiedAt": { "type": ["string", "null"], "format": "date-time" },
+    "verifiedBy": { "type": ["string", "null"] },
+    "validUntil": { "type": ["string", "null"], "format": "date-time" },
+    "notes": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "verificationStatus": { "const": "VERIFIED" } } },
+      "then": { "properties": { "sourceIds": { "type": "array", "minItems": 1 }, "verifiedAt": { "type": "string" }, "verifiedBy": { "type": "string", "minLength": 1 } } }
+    }
+  ]
+}

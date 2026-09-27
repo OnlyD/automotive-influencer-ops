@@ -6,6 +6,7 @@ data/imports/archived/*
 data/imports/rejected/*
 !data/imports/rejected/README.md
 artifacts/
+.local/
 
 # Local secrets and environment files
 .env

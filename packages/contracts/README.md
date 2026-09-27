@@ -1,3 +1,3 @@
-# contracts — placeholder
+# Contracts
 
-Purpose: shared contracts and schemas. Next: add versioned inventory schemas and contract validation. No implementation yet.
+Versioned JSON Schemas and TypeScript types for vehicles, facts, sources, commercial offers, and inventory import reports. `validateContract` validates values against the shipped JSON Schemas.

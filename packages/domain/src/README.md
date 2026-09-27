@@ -1,3 +1,3 @@
-# domain/src — placeholder
+# Domain source
 
-TypeScript domain code. Implementation pending.
+TypeScript domain rules with no infrastructure dependencies.

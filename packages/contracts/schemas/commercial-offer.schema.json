@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/schemas/v1.0.0/commercial-offer.schema.json",
+  "title": "CommercialOffer",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["offerId", "vehicleId", "price", "availability", "promotionText", "financingText", "confirmedBy", "confirmedAt", "expiresAt", "status"],
+  "properties": {
+    "offerId": { "type": "string", "pattern": "^offer_[a-zA-Z0-9_-]+$" },
+    "vehicleId": { "type": "string", "pattern": "^veh_[a-zA-Z0-9_-]+$" },
+    "price": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "object", "additionalProperties": false, "required": ["amount", "currency"], "properties": { "amount": { "type": "number", "minimum": 0 }, "currency": { "type": "string", "pattern": "^[A-Z]{3}$" } } }
+      ]
+    },
+    "availability": { "enum": ["AVAILABLE", "RESERVED", "SOLD", "UNAVAILABLE", "UNKNOWN"] },
+    "promotionText": { "type": ["string", "null"] },
+    "financingText": { "type": ["string", "null"] },
+    "confirmedBy": { "type": ["string", "null"] },
+    "confirmedAt": { "type": ["string", "null"], "format": "date-time" },
+    "expiresAt": { "type": ["string", "null"], "format": "date-time" },
+    "status": { "enum": ["UNCONFIRMED", "CONFIRMED", "STALE"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "CONFIRMED" } } },
+      "then": { "properties": { "confirmedBy": { "type": "string", "minLength": 1 }, "confirmedAt": { "type": "string" } } }
+    }
+  ]
+}

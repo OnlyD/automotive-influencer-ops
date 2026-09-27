@@ -1,3 +1,3 @@
-# contracts/src — placeholder
+# Contract source
 
-TypeScript validation code and types derived from schemas. Implementation pending.
+TypeScript contract types and JSON Schema validation helpers. Schemas are the structural source of truth.

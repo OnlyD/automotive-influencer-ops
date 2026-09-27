@@ -1,3 +1,3 @@
-# CI — placeholder
+# CI
 
-A CI workflow will be added when executable validation commands exist. There is no functional pipeline yet.
+The CI workflow installs the pinned pnpm version, performs a frozen workspace install, and runs typechecking and tests on Node.js 20.

@@ -1,3 +1,3 @@
-# Fixtures — placeholder
+# Fictional fixtures
 
-Synthetic data only. A fictional inventory fixture will be added in increment B.
+`honda-inventory.csv` is a synthetic input used to validate the local importer. Its rows are not real stock, availability, trims, offers, or verified vehicle facts. Never commit real inventory exports, VINs, customer information, or media.

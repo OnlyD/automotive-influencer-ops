@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/schemas/v1.0.0/vehicle.schema.json",
+  "title": "Vehicle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["vehicleId", "inventoryKey", "year", "make", "model", "trim", "market", "condition", "status", "sourceSystem", "sourceRecordId", "createdAt", "updatedAt"],
+  "properties": {
+    "vehicleId": { "type": "string", "pattern": "^veh_[a-zA-Z0-9_-]+$" },
+    "inventoryKey": { "type": "string", "minLength": 3 },
+    "vin": { "type": ["string", "null"], "pattern": "^[A-HJ-NPR-Z0-9]{17}$" },
+    "year": { "type": "integer", "minimum": 1886, "maximum": 2100 },
+    "make": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "trim": { "type": "string", "minLength": 1 },
+    "market": { "type": "string", "pattern": "^[A-Z]{2}$" },
+    "condition": { "enum": ["NEW", "USED", "CERTIFIED_PRE_OWNED", "UNKNOWN"] },
+    "status": { "enum": ["AVAILABLE", "RESERVED", "SOLD", "UNAVAILABLE", "UNKNOWN"] },
+    "sourceSystem": { "type": "string", "minLength": 1 },
+    "sourceRecordId": { "type": "string", "minLength": 1 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  }
+}

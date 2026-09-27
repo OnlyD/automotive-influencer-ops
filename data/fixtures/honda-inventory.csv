@@ -1,0 +1,4 @@
+source_system,source_record_id,year,make,model,trim,market,condition,status,price_amount,currency,promotion_text,financing_text
+fixture_only,unit-demo-001,2025,Honda,CR-V,Fixture only,US,NEW,UNKNOWN,,,,
+fixture_only,unit-demo-002,2025,Honda,Civic,Fixture only,US,NEW,UNKNOWN,,,,
+fixture_only,unit-demo-003,2025,Honda,Accord,Fixture only,US,NEW,UNKNOWN,,,,

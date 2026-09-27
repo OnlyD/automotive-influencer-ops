@@ -12,7 +12,13 @@ This repository keeps its existing name and remote. The initial structure follow
 
 Technical files and operator-facing technical work use English. Every interaction and user-facing output for the influencer must always use Spanish, her primary language. The presenter onboarding skill is exclusive to her workflow; the technical operator uses the technical workflows.
 
-The packages and workflows are documentation scaffolding only: there is not yet a compilable workspace or functional inventory importer. Increment B will add contracts, fictional fixtures, and local preview/apply import. Never commit real inventory, videos, or secrets.
+The `pnpm` workspace and contracts package provide local build, typecheck, and test commands. The inventory package supports fictional CSV preview/apply using a replaceable local JSON repository under ignored `.local/inventory/`. Real inventory, videos, and secrets must never be committed.
+
+## Local development
+
+Requirements: Node.js 20 or newer and pnpm 9.15.9 (selected by Corepack from `package.json`). Run `pnpm install`, `pnpm build`, `pnpm typecheck`, and `pnpm test` from the repository root.
+
+Preview the fictional Honda fixture with `pnpm inventory -- preview --file data/fixtures/honda-inventory.csv`. Apply only after reviewing the preview, using its `importId` and `previewHash`: `pnpm inventory -- apply --file data/fixtures/honda-inventory.csv --preview-id <id> --preview-hash <hash>`. The importer refuses changed source files or inventory snapshots. Use `pnpm inventory -- list --make Honda` to query local vehicles.
 
 ## Role entry skills
 

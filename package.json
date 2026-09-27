@@ -1,0 +1,20 @@
+{
+  "name": "automotive-influencer-ops",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm --recursive --filter './packages/*' build",
+    "typecheck": "pnpm build && pnpm --recursive --filter './packages/*' typecheck",
+    "test": "pnpm build && pnpm --recursive --filter './packages/*' typecheck && pnpm --recursive --filter './packages/*' test",
+    "inventory": "pnpm --filter @automotive/inventory inventory"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

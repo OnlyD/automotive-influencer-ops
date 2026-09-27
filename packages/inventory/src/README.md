@@ -1,3 +1,3 @@
-# inventory/src — placeholder
+# Inventory source
 
-Local inventory implementation. Pending; do not store real operational data here.
+CSV import planning, hash-confirmed apply, repository interfaces, and the local CLI. Runtime data belongs under `.local/inventory/`, not in this source directory.

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/schemas/v1.0.0/source.schema.json",
+  "title": "Source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sourceId", "type", "title", "publisher", "url", "retrievedAt", "publishedAt", "contentHash", "archiveLocation", "reliabilityTier", "locale"],
+  "properties": {
+    "sourceId": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" },
+    "type": { "enum": ["MANUFACTURER_PAGE", "VEHICLE_DOCUMENT", "AUTHORIZED_INVENTORY", "REGULATORY", "EDITORIAL", "TEST_FIXTURE"] },
+    "title": { "type": "string", "minLength": 1 },
+    "publisher": { "type": "string", "minLength": 1 },
+    "url": { "type": "string", "format": "uri" },
+    "retrievedAt": { "type": "string", "format": "date-time" },
+    "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+    "contentHash": { "type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$" },
+    "archiveLocation": { "type": ["string", "null"] },
+    "reliabilityTier": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "locale": { "type": "string", "pattern": "^[a-z]{2}-[A-Z]{2}$" }
+  }
+}

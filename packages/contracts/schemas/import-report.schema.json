@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/schemas/v1.0.0/import-report.schema.json",
+  "title": "InventoryImportReport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["importId", "mode", "status", "sourcePath", "sourceHash", "mappingVersion", "previewHash", "requestedBy", "createdAt", "rowsTotal", "rowsValid", "rowsRejected", "creates", "updates", "unchanged", "warnings", "rows"],
+  "properties": {
+    "importId": { "type": "string", "pattern": "^imp_[a-f0-9]{16}$" },
+    "mode": { "enum": ["PREVIEW", "APPLY"] },
+    "status": { "enum": ["PREVIEW_READY", "APPLIED"] },
+    "sourcePath": { "type": "string", "minLength": 1 },
+    "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "mappingVersion": { "type": "string", "pattern": "^[a-z0-9_-]+@[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "previewHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "requestedBy": { "const": "technical-operator" },
+    "errorReportPath": { "type": ["string", "null"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "appliedAt": { "type": ["string", "null"], "format": "date-time" },
+    "rowsTotal": { "type": "integer", "minimum": 0 },
+    "rowsValid": { "type": "integer", "minimum": 0 },
+    "rowsRejected": { "type": "integer", "minimum": 0 },
+    "creates": { "type": "integer", "minimum": 0 },
+    "updates": { "type": "integer", "minimum": 0 },
+    "unchanged": { "type": "integer", "minimum": 0 },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["line", "inventoryKey", "action", "errors"],
+        "properties": {
+          "line": { "type": "integer", "minimum": 2 },
+          "inventoryKey": { "type": ["string", "null"] },
+          "action": { "enum": ["CREATE", "UPDATE", "UNCHANGED", "REJECTED"] },
+          "errors": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

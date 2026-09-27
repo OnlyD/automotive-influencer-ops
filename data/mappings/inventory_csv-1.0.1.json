@@ -1,0 +1,14 @@
+{
+  "id": "inventory_csv",
+  "version": "1.0.1",
+  "format": "CSV",
+  "sourceSystemColumn": "source_system",
+  "sourceRecordIdColumn": "source_record_id",
+  "requiredColumns": ["source_system", "source_record_id", "year", "make", "model", "trim", "market", "condition", "status"],
+  "optionalColumns": ["price_amount", "currency", "promotion_text", "financing_text"],
+  "identityFields": ["year", "make", "model", "trim", "market"],
+  "sensitiveColumns": ["vin", "buyer_name", "buyer_phone", "buyer_email", "customer_name", "customer_phone", "customer_email"],
+  "sensitiveColumnPrefixes": ["vin_", "buyer_", "customer_", "owner_"],
+  "unknownColumnPolicy": "ignore",
+  "commercialOfferImportStatus": "UNCONFIRMED"
+}
