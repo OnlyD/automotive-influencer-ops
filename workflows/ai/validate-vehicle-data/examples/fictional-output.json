@@ -1,0 +1,7 @@
+{
+  "workflow": { "id": "validate-vehicle-data", "version": "1.0.0" },
+  "vehicle_id": "veh_example",
+  "proposals": [{ "candidate_fact_id": "candidate_example_001", "proposed_status": "IN_REVIEW", "supporting_source_ids": ["src_fixture_001"], "opposing_source_ids": [], "evidence_summary": "Fixture-only source; insufficient evidence for verification.", "reviewer_checklist": ["Replace fictional evidence with an official source before approval."] }],
+  "review_required": true,
+  "warnings": ["Fictional example. The candidate is not a verified vehicle fact."]
+}

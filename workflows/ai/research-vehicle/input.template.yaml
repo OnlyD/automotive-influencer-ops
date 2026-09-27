@@ -1,0 +1,12 @@
+vehicle:
+  vehicle_id: veh_example
+  year: 2025
+  make: Honda
+  model: Example model
+  trim: Fictional trim
+  market: US
+research_brief:
+  question: Which manufacturer-published specifications apply to this exact trim and market?
+  requested_fields:
+    - engine.power_hp
+  as_of: "2026-01-01T00:00:00Z"

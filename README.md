@@ -14,6 +14,8 @@ Technical files and operator-facing technical work use English. Every interactio
 
 The `pnpm` workspace and contracts package provide local build, typecheck, and test commands. The inventory package supports fictional CSV preview/apply using a replaceable local JSON repository under ignored `.local/inventory/`. Real inventory, videos, and secrets must never be committed.
 
+The initial C-track workflows are versioned under `workflows/ai/` and validated by the local `apps/ai-runner/`. They currently use an injected executor for deterministic testing; no model client or external service is connected. See `docs/ai-workflows.md`.
+
 ## Local development
 
 Requirements: Node.js 20 or newer and pnpm 9.15.9 (selected by Corepack from `package.json`). Run `pnpm install`, `pnpm build`, `pnpm typecheck`, and `pnpm test` from the repository root.

@@ -1,3 +1,3 @@
-# Applications — placeholder
+# Applications
 
-Local monorepo applications. The web application is explicitly deferred.
+`ai-runner/` contains the local, allowlisted workflow registry and schema-validation boundary. The web application remains future scope and is not created yet.

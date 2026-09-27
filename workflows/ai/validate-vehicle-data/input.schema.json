@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/workflows/validate-vehicle-data/1.0.0/input.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["vehicle", "candidate_facts", "sources"],
+  "properties": {
+    "vehicle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["vehicle_id", "year", "make", "model", "trim", "market"],
+      "properties": {
+        "vehicle_id": { "type": "string", "pattern": "^veh_[a-zA-Z0-9_-]+$" },
+        "year": { "type": "integer", "minimum": 1886, "maximum": 2100 }, "make": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 }, "trim": { "type": "string", "minLength": 1 }, "market": { "type": "string", "pattern": "^[A-Z]{2,3}$" }
+      }
+    },
+    "candidate_facts": {
+      "type": "array", "minItems": 1, "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["candidate_fact_id", "field", "value", "unit", "scope", "source_ids", "notes"],
+        "properties": {
+          "candidate_fact_id": { "type": "string", "pattern": "^candidate_[a-zA-Z0-9_-]+$" }, "field": { "type": "string", "minLength": 1 },
+          "value": { "type": ["string", "number", "boolean", "array", "object"] }, "unit": { "type": ["string", "null"] },
+          "scope": { "enum": ["UNIT", "MODEL_TRIM", "MODEL_YEAR", "MARKET"] },
+          "source_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" } },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "sources": {
+      "type": "array", "minItems": 1, "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["sourceId", "type", "title", "publisher", "url", "retrievedAt", "publishedAt", "contentHash", "archiveLocation", "reliabilityTier", "locale"],
+        "properties": {
+          "sourceId": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" },
+          "type": { "enum": ["MANUFACTURER_PAGE", "VEHICLE_DOCUMENT", "AUTHORIZED_INVENTORY", "REGULATORY", "EDITORIAL", "TEST_FIXTURE"] },
+          "title": { "type": "string", "minLength": 1 }, "publisher": { "type": "string", "minLength": 1 }, "url": { "type": "string", "format": "uri" },
+          "retrievedAt": { "type": "string", "format": "date-time" }, "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+          "contentHash": { "type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$" }, "archiveLocation": { "type": ["string", "null"] },
+          "reliabilityTier": { "type": "integer", "minimum": 1, "maximum": 5 }, "locale": { "type": "string", "pattern": "^[a-z]{2}-[A-Z]{2}$" }
+        }
+      }
+    }
+  }
+}

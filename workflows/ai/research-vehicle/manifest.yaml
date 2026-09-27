@@ -1,0 +1,22 @@
+id: research-vehicle
+version: 1.0.0
+owner: technical-operator
+allowed_roles:
+  - technical-operator
+input_schema: input.schema.json
+output_schema: output.schema.json
+requires_human_approval: true
+allows_freeform_prompt: false
+editable_fields: []
+locked_fields:
+  - vehicle_identity
+  - source_metadata
+  - candidate_fact_values
+execution:
+  initial: main
+  revisions: main
+delegation:
+  allowed: true
+  only_when:
+    - new_research_required
+  maximum_subagents: 1

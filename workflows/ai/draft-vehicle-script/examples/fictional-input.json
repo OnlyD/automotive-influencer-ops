@@ -1,0 +1,8 @@
+{
+  "production_id": "prd_fixture_001",
+  "vehicle": { "vehicle_id": "veh_fixture_honda_001", "year": 2025, "make": "Honda", "model": "Fixture Model", "trim": "Fixture only", "market": "US" },
+  "verified_facts": [{ "fact_id": "fact_fixture_001", "label": "Fictional test attribute", "value": 1, "unit": "fixture_unit", "source_ids": ["src_fixture_001"], "verification_status": "VERIFIED" }],
+  "editorial_brief": { "audience": "Spanish-speaking test audience", "angle": "Explain one fictional attribute without making extra claims", "tone": "Clear and natural", "target_duration_seconds": 30, "target_clip_count": 1 },
+  "commercial_context": { "include_price": false, "include_availability": false, "include_financing": false, "approved_claims": [] },
+  "constraints": { "language": "es", "format": "vertical_video", "prohibited_claims": [], "cta_destination": "NONE" }
+}

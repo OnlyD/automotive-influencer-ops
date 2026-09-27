@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/workflows/draft-vehicle-script/1.0.0/output.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["production_id", "workflow", "script", "fact_usage", "source_notes", "commercial_claims", "approval_required", "warnings"],
+  "properties": {
+    "production_id": { "type": "string", "pattern": "^prd_[a-zA-Z0-9_-]+$" },
+    "workflow": { "type": "object", "additionalProperties": false, "required": ["id", "version"], "properties": { "id": { "const": "draft-vehicle-script" }, "version": { "const": "1.0.0" } } },
+    "script": { "type": "object", "additionalProperties": false, "required": ["title", "target_duration_seconds", "blocks", "closing_cta"], "properties": {
+      "title": { "type": "string", "minLength": 1 }, "target_duration_seconds": { "type": "integer", "minimum": 15, "maximum": 600 },
+      "blocks": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": false, "required": ["id", "target_range_seconds", "spoken_text", "on_screen_text", "shot_intent", "fact_refs", "clip_candidate"], "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
+        "target_range_seconds": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
+        "spoken_text": { "type": "string", "minLength": 1 }, "on_screen_text": { "type": ["string", "null"] },
+        "shot_intent": { "type": "string", "minLength": 1 }, "fact_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^fact_[a-zA-Z0-9_-]+$" } },
+        "clip_candidate": { "type": "boolean" }
+      } } },
+      "closing_cta": { "type": "object", "additionalProperties": false, "required": ["spoken_text", "destination"], "properties": {
+        "spoken_text": { "type": "string", "minLength": 0 }, "destination": { "enum": ["PROFILE_OR_MAIN_VIDEO", "NONE"] }
+      } }
+    } },
+    "fact_usage": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["fact_id", "used_in_blocks"], "properties": {
+      "fact_id": { "type": "string", "pattern": "^fact_[a-zA-Z0-9_-]+$" }, "used_in_blocks": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } }
+    } } },
+    "source_notes": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["source_id", "description_ready_text"], "properties": {
+      "source_id": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" }, "description_ready_text": { "type": "string", "minLength": 1 }
+    } } },
+    "commercial_claims": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["kind", "text", "source_ids"], "properties": {
+      "kind": { "enum": ["price", "availability", "promotion", "financing"] }, "text": { "type": "string", "minLength": 1 },
+      "source_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" } }
+    } } },
+    "approval_required": { "const": true }, "warnings": { "type": "array", "items": { "type": "string" } }
+  }
+}

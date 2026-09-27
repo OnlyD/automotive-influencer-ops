@@ -1,0 +1,23 @@
+id: draft-vehicle-script
+version: 1.0.0
+owner: technical-operator
+allowed_roles:
+  - technical-operator
+input_schema: input.schema.json
+output_schema: output.schema.json
+requires_human_approval: true
+allows_freeform_prompt: false
+editable_fields:
+  - script_text
+locked_fields:
+  - verified_facts
+  - sources
+  - commercial_claims
+execution:
+  initial: main
+  revisions: main
+delegation:
+  allowed: true
+  only_when:
+    - new_research_required
+  maximum_subagents: 1

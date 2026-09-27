@@ -1,0 +1,21 @@
+id: validate-vehicle-data
+version: 1.0.0
+owner: technical-operator
+allowed_roles:
+  - technical-operator
+input_schema: input.schema.json
+output_schema: output.schema.json
+requires_human_approval: true
+allows_freeform_prompt: false
+editable_fields: []
+locked_fields:
+  - candidate_fact_values
+  - source_metadata
+execution:
+  initial: main
+  revisions: main
+delegation:
+  allowed: true
+  only_when:
+    - independent_fact_check_required
+  maximum_subagents: 1

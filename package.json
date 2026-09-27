@@ -7,10 +7,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm --recursive --filter './packages/*' build",
-    "typecheck": "pnpm build && pnpm --recursive --filter './packages/*' typecheck",
-    "test": "pnpm build && pnpm --recursive --filter './packages/*' typecheck && pnpm --recursive --filter './packages/*' test",
-    "inventory": "pnpm --filter @automotive/inventory inventory"
+    "build": "pnpm --recursive --filter './packages/*' --filter './apps/*' build",
+    "typecheck": "pnpm build && pnpm --recursive --filter './packages/*' --filter './apps/*' typecheck",
+    "test": "pnpm build && pnpm --recursive --filter './packages/*' --filter './apps/*' typecheck && pnpm --recursive --filter './packages/*' --filter './apps/*' test",
+    "inventory": "pnpm --filter @automotive/inventory inventory",
+    "ai-runner": "pnpm --filter @automotive/ai-runner workflow"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",

@@ -1,0 +1,10 @@
+{
+  "production_id": "prd_fixture_001",
+  "workflow": { "id": "draft-vehicle-script", "version": "1.0.0" },
+  "script": { "title": "Ejemplo ficticio", "target_duration_seconds": 30, "blocks": [{ "id": "hook", "target_range_seconds": [0, 5], "spoken_text": "Este es un ejemplo de prueba, no una afirmación sobre un vehículo real.", "on_screen_text": null, "shot_intent": "Mostrar una tarjeta que diga fixture", "fact_refs": [], "clip_candidate": true }, { "id": "detail", "target_range_seconds": [5, 20], "spoken_text": "El atributo ficticio de prueba tiene valor uno.", "on_screen_text": null, "shot_intent": "Mostrar un gráfico claramente ficticio", "fact_refs": ["fact_fixture_001"], "clip_candidate": false }, { "id": "close", "target_range_seconds": [20, 30], "spoken_text": "Fin del ejemplo de prueba.", "on_screen_text": null, "shot_intent": "Cerrar la tarjeta de prueba", "fact_refs": [], "clip_candidate": false }], "closing_cta": { "spoken_text": "", "destination": "NONE" } },
+  "fact_usage": [{ "fact_id": "fact_fixture_001", "used_in_blocks": ["detail"] }],
+  "source_notes": [{ "source_id": "src_fixture_001", "description_ready_text": "Fixture ficticio del proyecto; no es una fuente vehicular." }],
+  "commercial_claims": [],
+  "approval_required": true,
+  "warnings": ["Fictional example. Do not publish."]
+}

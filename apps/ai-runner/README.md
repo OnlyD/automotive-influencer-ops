@@ -1,3 +1,5 @@
-# AI Runner — placeholder
+# Local AI workflow runner
 
-A local runner restricted to registered workflows. Deferred to a later phase; it must not expose services or execute arbitrary commands.
+The local runner validates inputs and outputs against versioned, registered workflow definitions. The first registered workflows are vehicle research, vehicle data validation, and vehicle script drafting. `createCodexExecutor` invokes the Codex CLI only after a caller explicitly creates it with a dedicated, absolute `CODEX_HOME` path.
+
+Run it with `pnpm ai-runner -- <registered-workflow>@<version> --input <file.json|file.yaml>`. Set `AUTOMOTIVE_CODEX_HOME` to an absolute, dedicated Codex home for an explicit live invocation. The adapter uses `codex exec --json --ephemeral --sandbox read-only --ignore-user-config`, a temporary working directory, and the workflow's output schema. It does not run arbitrary user commands, load user MCP/config settings, or publish content. Model execution was not run as part of repository tests; tests use a fake CLI executable. Human approval remains required before any result is treated as verified or official. Research returns no sourced candidates unless an authorized retrieval tool is available.
