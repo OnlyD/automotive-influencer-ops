@@ -26,7 +26,7 @@ export interface WorkflowManifest {
   id: string;
   version: string;
   owner: "technical-operator";
-  allowed_roles: string[];
+  allowed_roles: Array<"presenter" | "technical-operator">;
   input_schema: "input.schema.json";
   output_schema: "output.schema.json";
   requires_human_approval: true;
@@ -49,6 +49,7 @@ const approvedWorkflows = [
   { id: "research-vehicle", version: "1.0.0" },
   { id: "validate-vehicle-data", version: "1.0.0" },
   { id: "draft-vehicle-script", version: "1.0.0" },
+  { id: "draft-presenter-script", version: "1.0.0" },
 ] as const;
 
 function isManifest(value: unknown, expectedId: string, expectedVersion: string): value is WorkflowManifest {
@@ -58,6 +59,8 @@ function isManifest(value: unknown, expectedId: string, expectedVersion: string)
     && manifest.version === expectedVersion
     && manifest.owner === "technical-operator"
     && Array.isArray(manifest.allowed_roles)
+    && manifest.allowed_roles.length > 0
+    && manifest.allowed_roles.every((role) => role === "presenter" || role === "technical-operator")
     && manifest.input_schema === "input.schema.json"
     && manifest.output_schema === "output.schema.json"
     && manifest.requires_human_approval === true

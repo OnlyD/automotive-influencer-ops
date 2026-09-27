@@ -2,7 +2,7 @@
 
 **Estado:** ejecución autorizada; bootstrap e implementación incremental en curso  
 **Fecha de consolidación:** 27 de septiembre de 2026  
-**Versión de la especificación:** 2.0.0  
+**Versión de la especificación:** 2.1.0
 **Nombre lógico del repositorio:** `automotive-content-ops`  
 **Responsable técnico y autoridad de integración:** operador técnico del proyecto  
 **Audiencia principal:** agente Codex que continuará la implementación, operador técnico y futuros mantenedores  
@@ -30,6 +30,7 @@ El acuerdo operativo del proyecto conserva las decisiones de colaboración y pro
 | --- | --- | --- |
 | 1.0.0 | 24-sep-2026 | Arquitectura inicial y decisiones de alto nivel. |
 | 2.0.0 | 27-sep-2026 | Conversión a especificación autocontenida de ejecución; incorpora inventario, contratos, workflows, skills, subagentes, operación, pruebas, riesgos y handoff. |
+| 2.1.0 | 27-sep-2026 | Añade una vista previa de guion para la presentadora con hechos candidatos enlazados a fuentes, revisión factual obligatoria y sin publicación ni persistencia. |
 
 ### Punto de reanudación obligatorio en Codex
 
@@ -115,6 +116,7 @@ El diseño debe permitir:
 
 - Invocar principalmente las skills autorizadas para su rol.
 - La presentadora puede ajustar el guion: adaptar, reordenar, acortar o reescribir el texto hablado para llevarlo a su forma natural de expresarse.
+- La presentadora puede solicitar una vista previa no oficial con hechos candidatos y fuentes; la revisión factual y la oficialización siguen siendo responsabilidad del operador.
 - Preparar y completar la grabación solicitada.
 - Entregar el material mediante el flujo definido.
 - Solicitar correcciones sin modificar hechos, estados o reglas del sistema.
@@ -466,6 +468,7 @@ delegation:
 
 La presentadora utilizará principalmente:
 
+- `$generar-guion` para solicitar una vista previa no oficial, con hechos candidatos y fuentes identificables; todos los hechos requieren revisión factual del operador.
 - `$adaptar-guion`
 - `$preparar-grabacion`
 - `$entregar-material`
@@ -474,7 +477,7 @@ Una solicitud como:
 
 > `$adaptar-guion Quiero que suene más natural y menos formal.`
 
-debe localizar el guion aprobado, cargar el contrato correcto y permitir cambios únicamente en los campos editables.
+debe localizar el guion aprobado, cargar el contrato correcto y permitir cambios únicamente en los campos editables. `$generar-guion` es una excepción limitada: solo produce una vista previa en la conversación, no persiste ni oficializa el resultado, mantiene cada afirmación candidata enlazada a su fuente y no permite publicar.
 
 La presentadora no necesita:
 
@@ -733,7 +736,7 @@ El sistema debe cubrir como mínimo los siguientes dominios:
 | FR-002 | Inventario | Mantener un registro canónico por unidad y detectar actualizaciones o duplicados. |
 | FR-003 | Fuentes | Asociar cada hecho verificable con fuente, fecha de consulta y estado de verificación. |
 | FR-004 | Investigación | Separar datos confirmados, datos contradictorios y datos pendientes. |
-| FR-005 | Guiones | Generar un guion modular a partir de datos verificados y objetivos editoriales. |
+| FR-005 | Guiones | Generar el guion oficial a partir de hechos verificados; permitir una vista previa no oficial solo con hechos candidatos enlazados a fuentes y revisión factual del operador. |
 | FR-006 | Adaptación | Permitir que la presentadora ajuste lenguaje y orden sin alterar hechos bloqueados. |
 | FR-007 | Grabación | Generar un plan de tomas y checklist comprensible para la presentadora. |
 | FR-008 | Entrega | Recibir y relacionar material grabado con una producción sin exponer credenciales. |
@@ -1054,6 +1057,7 @@ Una transición fallida no se salta. El sistema conserva el estado anterior y cr
 | `validate-vehicle-data` | Híbrido | Research bundle | Verified fact set | Sí, verificación independiente | Operador |
 | `select-content-angle` | IA asistida | Facts + audiencia | Editorial brief | Opcional | Ambos |
 | `draft-vehicle-script` | IA | Brief + facts | Script draft | Sí, candidato nuevo | Operador |
+| `draft-presenter-script` | IA guiada | Brief + hechos candidatos con fuentes | Vista previa de guion no oficial | No | Revisión técnica obligatoria; no publicable |
 | `adapt-presenter-script` | IA guiada | Script aprobado para revisión + preferencias | Script revision | Solo nueva investigación | Presentadora + operador |
 | `create-shooting-plan` | IA guiada | Script aprobado | Shot list + checklist | Opcional | Operador |
 | `ingest-footage` | Determinista | Upload manifest | Footage manifest | No | Operador |
@@ -1243,6 +1247,14 @@ El paquete es específico por plataforma. No se copia ciegamente el mismo captio
 ## 36. Skills y contratos de interacción
 
 ### 36.1 Skills iniciales de la presentadora
+
+#### `$generar-guion`
+
+- Solicita mercado, versión y objetivo editorial que falten.
+- Usa `draft-presenter-script` con hechos candidatos y fuentes identificables; no usa memoria del modelo como evidencia.
+- Devuelve una vista previa en la conversación con fuentes y referencias por bloque.
+- No guarda el input o el output, modifica inventario, verifica hechos, incluye claims comerciales ni oficializa artefactos.
+- Exige revisión factual del operador y mantiene `publishable: false`.
 
 #### `$adaptar-guion`
 
@@ -1470,6 +1482,7 @@ Los endpoints concretos se derivan de estos recursos después de validar el fluj
 | Acción | Presentadora | Operador | Worker local | Sistema |
 | --- | --- | --- | --- | --- |
 | Consultar producción asignada | Sí | Sí | Limitado | Sí |
+| Solicitar vista previa no oficial con hechos candidatos enlazados a fuentes | Sí | Sí | No | Valida |
 | Adaptar campos creativos | Sí | Sí | No | Valida |
 | Modificar hechos | No | Sí, con evidencia | No | Valida |
 | Aprobar creativo | Sí | Sí | No | Registra |
@@ -1631,6 +1644,7 @@ Entregables:
 
 Entregables:
 
+- `$generar-guion` para vista previa no oficial basada en hechos candidatos con fuentes y revisión factual obligatoria.
 - `$adaptar-guion`, `$preparar-grabacion` y `$entregar-material`.
 - Manejo de preguntas faltantes.
 - Diffs y protección de campos bloqueados.
@@ -1693,6 +1707,7 @@ Una fase no termina porque exista código. Requiere:
 
 - El proyecto se ejecutará; no está en fase de decidir si se hace.
 - La presentadora es imagen y voz; puede adaptar, reordenar, acortar o reescribir su texto.
+- La presentadora puede solicitar vistas previas de guion no oficiales; no puede verificar hechos ni oficializar el resultado.
 - El operador conserva control técnico, factual, de publicación e integración.
 - Todo flujo textual de IA usa input y output definidos, templates y schemas.
 - La presentadora trabajará principalmente mediante skills.

@@ -1,6 +1,6 @@
 # Local AI workflows
 
-The AI Runner registers three exact workflow IDs and versions. It validates input and output schemas and then applies workflow-specific reference checks. It rejects unknown workflow/version pairs. Callers must supply an executor adapter; the runner does not construct shell commands or access external services.
+The AI Runner registers four exact workflow IDs and versions. It validates input and output schemas and then applies workflow-specific reference checks. It rejects unknown workflow/version pairs. Callers must supply an executor adapter; the runner does not construct shell commands or access external services. The optional caller role is a declared workflow context, not authentication.
 
 ## Registered workflows
 
@@ -9,6 +9,7 @@ The AI Runner registers three exact workflow IDs and versions. It validates inpu
 | `research-vehicle@1.0.0` | Exact vehicle identity and requested fields | Unverified candidate facts with source records | Operator reviews source identity, applicability, and evidence |
 | `validate-vehicle-data@1.0.0` | Candidate facts and source records | One validation proposal per candidate | Operator reviews every proposal; no inventory mutation |
 | `draft-vehicle-script@1.0.0` | Production brief and `VERIFIED` facts | Spanish script candidate, fact usage, source notes | Operator reviews before the draft can enter production |
+| `draft-presenter-script@1.0.0` | Spanish editorial brief and source-linked `CANDIDATE` facts | Non-official Spanish script preview with candidate/source references | Operator fact review required; never publishable or persisted by the presenter skill |
 
 Schemas and prompt text are versioned with each workflow. Example files use fictional values and `example.invalid` sources. They are fixtures, not automotive guidance.
 

@@ -13,8 +13,9 @@ async function readJson(path: string): Promise<unknown> {
   return JSON.parse(await readFile(path, "utf8")) as unknown;
 }
 
-test("registers only the three versioned C workflows and rejects unknown versions", () => {
+test("registers only the approved versioned C workflows and rejects unknown versions", () => {
   assert.deepEqual([...registry.keys()].sort(), [
+    "draft-presenter-script@1.0.0",
     "draft-vehicle-script@1.0.0",
     "research-vehicle@1.0.0",
     "validate-vehicle-data@1.0.0",
@@ -25,8 +26,9 @@ test("registers only the three versioned C workflows and rejects unknown version
 
 test("CLI accepts only a registered workflow reference and one input path", async () => {
   assert.deepEqual(parseRunnerCliArguments(["draft-vehicle-script@1.0.0", "--input", "brief.yaml"]), {
-    workflowId: "draft-vehicle-script", workflowVersion: "1.0.0", inputPath: "brief.yaml",
+    workflowId: "draft-vehicle-script", workflowVersion: "1.0.0", role: "technical-operator", inputPath: "brief.yaml",
   });
+  assert.equal(parseRunnerCliArguments(["draft-presenter-script@1.0.0", "--input", "brief.yaml", "--role", "presenter"]).role, "presenter");
   assert.throws(() => parseRunnerCliArguments(["draft-vehicle-script@latest", "--input", "brief.yaml"]), /Usage/);
   assert.throws(() => parseRunnerCliArguments(["draft-vehicle-script@1.0.0", "--input", "brief.yaml", "--output", "x"]), /Only one/);
   await assert.rejects(runWorkflowCli(["draft-vehicle-script@9.0.0", "--input", "missing.json"], {}), /not registered/);
@@ -43,7 +45,7 @@ test("finds the workflow registry when the runner is launched from its workspace
 });
 
 test("workflow templates and fictional output examples satisfy their registered schemas", async () => {
-  for (const workflowId of ["research-vehicle", "validate-vehicle-data", "draft-vehicle-script"]) {
+  for (const workflowId of ["research-vehicle", "validate-vehicle-data", "draft-vehicle-script", "draft-presenter-script"]) {
     const workflow = getRegisteredWorkflow(registry, workflowId, "1.0.0");
     const input = parse(await readFile(resolve(workflow.directory, "input.template.yaml"), "utf8")) as unknown;
     const output = await readJson(resolve(workflow.directory, "examples/fictional-output.json"));
@@ -52,6 +54,17 @@ test("workflow templates and fictional output examples satisfy their registered 
     assert.ok(workflow.prompt.length > 0, `${workflowId} prompt should not be empty`);
     await readFile(resolve(workflow.directory, "output.template.md"), "utf8");
   }
+});
+
+test("presenter can request only a provisional script and output references remain source-linked", async () => {
+  const input = await readJson(resolve(workflowRoot, "draft-presenter-script/examples/fictional-input.json"));
+  const output = await readJson(resolve(workflowRoot, "draft-presenter-script/examples/fictional-output.json"));
+  const result = await executeRegisteredWorkflow(registry, { workflowId: "draft-presenter-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => output);
+  assert.deepEqual(result, output);
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "research-vehicle", workflowVersion: "1.0.0", role: "presenter", input: {} }, async () => ({})), /presenter is not authorized/);
+  const unsupported = structuredClone(output) as { script: { blocks: Array<{ source_refs: string[] }> } };
+  unsupported.script.blocks[1]!.source_refs = [];
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-presenter-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => unsupported), /candidate fact has no linked source/);
 });
 
 test("research runner preserves unverified source-linked candidates and refuses unregistered execution", async () => {

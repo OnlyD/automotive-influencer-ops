@@ -1,3 +1,3 @@
-# ai-runner/src — placeholder
+# ai-runner/src
 
-The local server, controlled execution, and workflow registry will live here. Implementation pending.
+The local CLI loads only registered workflow versions, validates inputs and outputs, and rejects requests from roles that the selected manifest does not allow. Its optional `--role` value is declarative workflow context, not authentication. Live execution requires a separately configured operator-provided Codex home.

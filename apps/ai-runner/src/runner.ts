@@ -93,17 +93,71 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
       if (!usedSourceIds.has(source.source_id) && !approved.some((claim) => claim.source_ids.includes(source.source_id))) errors.push(`source note is not tied to an input fact or approved claim: ${source.source_id}`);
     }
   }
+  if (workflowId === "draft-presenter-script") {
+    const factIds = new Set((input.candidate_facts as Array<{ candidate_fact_id: string }>).map((fact) => fact.candidate_fact_id));
+    const factSources = new Map((input.candidate_facts as Array<{ candidate_fact_id: string; source_ids: string[] }>).map((fact) => [fact.candidate_fact_id, new Set(fact.source_ids)]));
+    const sourceIds = new Set((input.sources as Array<{ source_id: string }>).map((source) => source.source_id));
+    for (const fact of input.candidate_facts as Array<{ candidate_fact_id: string; source_ids: string[] }>) {
+      for (const sourceId of fact.source_ids) if (!sourceIds.has(sourceId)) errors.push(`candidate references unknown source: ${sourceId}`);
+    }
+    const blockIds = new Set<string>();
+    const expectedUsage = new Map<string, Set<string>>();
+    if (output.production_id !== input.production_id) errors.push("output production_id must match the input");
+    if (output.script.target_duration_seconds !== input.editorial_brief.target_duration_seconds) errors.push("script duration must match the brief");
+    let previousEnd = 0;
+    let clipCount = 0;
+    const usedSources = new Set<string>();
+    for (const block of output.script.blocks as Array<{ id: string; target_range_seconds: [number, number]; candidate_fact_refs: string[]; source_refs: string[]; clip_candidate: boolean }>) {
+      const [start, end] = block.target_range_seconds;
+      if (blockIds.has(block.id)) errors.push(`duplicate script block ID: ${block.id}`);
+      blockIds.add(block.id);
+      if (start >= end || start < previousEnd || end > output.script.target_duration_seconds) errors.push(`invalid or overlapping timing range for block ${block.id}`);
+      previousEnd = end;
+      if (block.clip_candidate) clipCount += 1;
+      const citedSources = new Set(block.source_refs);
+      for (const sourceId of block.source_refs) {
+        if (!sourceIds.has(sourceId)) errors.push(`block references unknown source: ${sourceId}`);
+        if (!block.candidate_fact_refs.some((factId) => factSources.get(factId)?.has(sourceId))) errors.push(`block source is not linked to a referenced candidate fact: ${sourceId}`);
+        usedSources.add(sourceId);
+      }
+      for (const factId of block.candidate_fact_refs) {
+        if (!factIds.has(factId)) errors.push(`block references unknown candidate fact: ${factId}`);
+        else {
+          const knownSources = factSources.get(factId) ?? new Set<string>();
+          if (![...citedSources].some((sourceId) => knownSources.has(sourceId))) errors.push(`candidate fact has no linked source in block ${block.id}: ${factId}`);
+          const usedIn = expectedUsage.get(factId) ?? new Set<string>();
+          usedIn.add(block.id);
+          expectedUsage.set(factId, usedIn);
+        }
+      }
+    }
+    if (output.script.blocks.length > 0 && output.script.blocks.at(-1)?.target_range_seconds[1] !== output.script.target_duration_seconds) errors.push("last script block must end at target duration");
+    if (clipCount > input.editorial_brief.target_clip_count) errors.push("script exceeds the approved clip candidate count");
+    if (output.sources_used.length !== usedSources.size || output.sources_used.some((sourceId: string) => !usedSources.has(sourceId))) errors.push("sources_used must match source references in script blocks");
+    const actualUsage = new Map<string, Set<string>>();
+    for (const usage of output.candidate_fact_usage as Array<{ candidate_fact_id: string; used_in_blocks: string[] }>) {
+      if (actualUsage.has(usage.candidate_fact_id)) errors.push(`duplicate candidate_fact_usage entry: ${usage.candidate_fact_id}`);
+      actualUsage.set(usage.candidate_fact_id, new Set(usage.used_in_blocks));
+    }
+    if (actualUsage.size !== expectedUsage.size) errors.push("candidate_fact_usage must match factual references in script blocks");
+    for (const [factId, blockIdsForFact] of expectedUsage) {
+      const actual = actualUsage.get(factId);
+      if (!actual || actual.size !== blockIdsForFact.size || [...actual].some((blockId) => !blockIdsForFact.has(blockId))) errors.push(`candidate_fact_usage does not match script references: ${factId}`);
+    }
+    if (output.technical_review_required !== true || output.publishable !== false) errors.push("presenter script preview must require technical review and remain non-publishable");
+  }
   if (errors.length > 0) throw new Error(`Workflow semantic validation failed: ${errors.join("; ")}`);
 }
 
 export async function executeRegisteredWorkflow(
   registry: Map<string, RegisteredWorkflow>,
-  request: { workflowId: string; workflowVersion: string; input: unknown },
+  request: { workflowId: string; workflowVersion: string; role?: "presenter" | "technical-operator"; input: unknown },
   executor: WorkflowExecutor,
 ): Promise<unknown> {
   const workflow = getRegisteredWorkflow(registry, request.workflowId, request.workflowVersion);
-  if (!workflow.manifest.allowed_roles.includes("technical-operator")) {
-    throw new Error(`Technical operator is not authorized for ${request.workflowId}.`);
+  const role = request.role ?? "technical-operator";
+  if (!workflow.manifest.allowed_roles.includes(role)) {
+    throw new Error(`${role} is not authorized for ${request.workflowId}.`);
   }
   if (!workflow.validateInput(request.input)) {
     const detail = workflow.validateInput.errors?.map((error) => `${error.instancePath || "/"} ${error.message}`).join("; ");

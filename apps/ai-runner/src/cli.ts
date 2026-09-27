@@ -9,6 +9,7 @@ import { getRegisteredWorkflow, loadWorkflowRegistry } from "./workflow-registry
 export interface RunnerCliArguments {
   workflowId: string;
   workflowVersion: string;
+  role: "presenter" | "technical-operator";
   inputPath: string;
 }
 
@@ -17,11 +18,24 @@ export function parseRunnerCliArguments(args: string[]): RunnerCliArguments {
   if (!workflowRef || !/^[a-z][a-z0-9-]*@[0-9]+\.[0-9]+\.[0-9]+$/.test(workflowRef)) {
     throw new Error("Usage: ai-runner <registered-workflow>@<version> --input <file.json|file.yaml>");
   }
-  if (options.length !== 2 || options[0] !== "--input" || !options[1] || options[1].startsWith("--")) {
-    throw new Error("Only one --input file option is supported.");
+  let role: RunnerCliArguments["role"] = "technical-operator";
+  let inputPath: string | undefined;
+  let roleProvided = false;
+  for (let index = 0; index < options.length; index += 1) {
+    const option = options[index];
+    const value = options[index + 1];
+    if (!value || value.startsWith("--")) throw new Error("Each runner option requires a value.");
+    if (option === "--input" && !inputPath) inputPath = value;
+    else if (option === "--role" && !roleProvided && (value === "presenter" || value === "technical-operator")) {
+      role = value;
+      roleProvided = true;
+    }
+    else throw new Error("Only one --input path and one optional --role are supported.");
+    index += 1;
   }
+  if (!inputPath) throw new Error("Usage: ai-runner <registered-workflow>@<version> --input <file.json|file.yaml> [--role presenter|technical-operator]");
   const separator = workflowRef.lastIndexOf("@");
-  return { workflowId: workflowRef.slice(0, separator), workflowVersion: workflowRef.slice(separator + 1), inputPath: options[1] };
+  return { workflowId: workflowRef.slice(0, separator), workflowVersion: workflowRef.slice(separator + 1), role, inputPath };
 }
 
 export async function runWorkflowCli(args: string[], environment: NodeJS.ProcessEnv = process.env): Promise<unknown> {
@@ -40,6 +54,7 @@ export async function runWorkflowCli(args: string[], environment: NodeJS.Process
   return executeRegisteredWorkflow(registry, {
     workflowId: request.workflowId,
     workflowVersion: request.workflowVersion,
+    role: request.role,
     input,
   }, createCodexExecutor({ codexHome }));
 }
