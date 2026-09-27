@@ -1,7 +1,7 @@
 {
   "name": "automotive-presenter",
-  "version": "0.1.0",
-  "description": "Herramientas en español para la operación de contenido automotriz de la presentadora.",
+  "version": "0.1.0+codex.20260927173128",
+  "description": "Herramientas en espa\u00f1ol para la operaci\u00f3n de contenido automotriz de la presentadora.",
   "author": {
     "name": "Automotive Content Ops"
   },
@@ -9,10 +9,10 @@
   "interface": {
     "displayName": "Presentadora Automotriz",
     "shortDescription": "Herramientas de contenido para la presentadora.",
-    "longDescription": "Skills en español para actualizar herramientas, adaptar guiones, preparar grabaciones y entregar material.",
+    "longDescription": "Skills en espa\u00f1ol para actualizar herramientas, adaptar guiones, preparar grabaciones y entregar material.",
     "developerName": "Automotive Content Ops",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "Ayúdame a actualizar mis herramientas."
+    "defaultPrompt": "Ay\u00fadame a actualizar mis herramientas."
   }
 }
