@@ -1,7 +1,15 @@
 # automotive-influencer-ops
 
-Proyecto para organizar la operación de contenido automotriz: desde los datos verificables de cada vehículo y la generación de guiones hasta la aprobación, publicación y medición.
+A repository for the automotive content operation, from verifiable vehicle inventory and script development through approval, publishing, and measurement.
 
-## Documento base
+## Technical specification
 
-La propuesta técnica inicial del proyecto está en [docs/propuesta-tecnica.md](docs/propuesta-tecnica.md). Se usará como referencia para definir el piloto y los artefactos técnicos que se construyan después.
+The current execution specification is [`docs/propuesta-tecnica.md`](docs/propuesta-tecnica.md). It defines the architecture, inventory and content contracts, skills, implementation increments, and pending decisions.
+
+## Repository status
+
+This repository keeps its existing name and remote. The initial structure follows section 10 of the specification. Placeholder `README.md` files explain each area's purpose and will be replaced or expanded as that area is implemented.
+
+Technical files and operator-facing technical work use English. Every interaction and user-facing output for the influencer must always use Spanish, her primary language. The presenter onboarding skill is exclusive to her workflow; the technical operator uses the technical workflows.
+
+The packages and workflows are documentation scaffolding only: there is not yet a compilable workspace or functional inventory importer. Increment B will add contracts, fictional fixtures, and local preview/apply import. Never commit real inventory, videos, or secrets.

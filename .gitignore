@@ -1,0 +1,18 @@
+# Local inventory imports and generated reports
+data/imports/incoming/*
+!data/imports/incoming/README.md
+data/imports/archived/*
+!data/imports/archived/README.md
+data/imports/rejected/*
+!data/imports/rejected/README.md
+artifacts/
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
