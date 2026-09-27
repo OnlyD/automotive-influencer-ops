@@ -1,0 +1,26 @@
+{
+  "production_id": "prd_example",
+  "workflow": { "id": "draft-promotional-script", "version": "1.0.0" },
+  "script": {
+    "title": "Conoce esta opción de Honda",
+    "target_duration_seconds": 45,
+    "opening": "¿Buscas un Honda y quieres conocer las opciones disponibles?",
+    "promo_insert": {
+      "spoken_text": "Pregunta por [PRECIO POR CONFIRMAR], [PROMOCIÓN POR CONFIRMAR] y [DISPONIBILIDAD POR CONFIRMAR]. Si buscas financiamiento, consulta [FINANCIAMIENTO POR CONFIRMAR] y [CONDICIONES DE CRÉDITO POR CONFIRMAR].",
+      "on_screen_text": "[PRECIO] · [PROMOCIÓN] · [DISPONIBILIDAD] por confirmar",
+      "used_offer_fields": [],
+      "source_refs": []
+    },
+    "closing": "Contacta a la agencia para confirmar los detalles antes de tomar una decisión."
+  },
+  "validity_disclosure": {
+    "status": "PENDING",
+    "spoken_text": "[VIGENCIA POR CONFIRMAR]. Consulta la vigencia con la agencia antes de grabar o publicar.",
+    "on_screen_text": "[VIGENCIA POR CONFIRMAR]",
+    "valid_until": null
+  },
+  "placeholders": ["PRICE", "PROMOTION", "AVAILABILITY", "FINANCING", "ELIGIBILITY", "VALIDITY"],
+  "commercial_review_required": true,
+  "publishable": false,
+  "warnings": ["Fictional fixture. No commercial offer was provided; every amount and date must be confirmed before use."]
+}

@@ -1,0 +1,26 @@
+production_id: prd_example
+vehicle:
+  vehicle_id: veh_example
+  year: 2025
+  make: Honda
+  model: Example model
+  trim: Fictional trim
+  market: US
+editorial_brief:
+  audience: Spanish-speaking vehicle shoppers
+  angle: Invite viewers to ask about a current offer without overstating terms
+  tone: Clear, warm, and sales-focused
+  target_duration_seconds: 45
+offer_context:
+  status: NOT_PROVIDED
+  price: null
+  promotion_text: null
+  availability_text: null
+  financing_text: null
+  eligibility_terms: []
+  confirmed_by: null
+  confirmed_at: null
+  valid_from: null
+  valid_until: null
+  source_ids: []
+  sources: []

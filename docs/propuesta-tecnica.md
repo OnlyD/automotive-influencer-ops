@@ -2,7 +2,7 @@
 
 **Estado:** ejecución autorizada; bootstrap e implementación incremental en curso  
 **Fecha de consolidación:** 27 de septiembre de 2026  
-**Versión de la especificación:** 2.2.0
+**Versión de la especificación:** 2.3.0
 **Nombre lógico del repositorio:** `automotive-content-ops`  
 **Responsable técnico y autoridad de integración:** operador técnico del proyecto  
 **Audiencia principal:** agente Codex que continuará la implementación, operador técnico y futuros mantenedores  
@@ -32,6 +32,7 @@ El acuerdo operativo del proyecto conserva las decisiones de colaboración y pro
 | 2.0.0 | 27-sep-2026 | Conversión a especificación autocontenida de ejecución; incorpora inventario, contratos, workflows, skills, subagentes, operación, pruebas, riesgos y handoff. |
 | 2.1.0 | 27-sep-2026 | Añade una vista previa de guion para la presentadora con hechos candidatos enlazados a fuentes, revisión factual obligatoria y sin publicación ni persistencia. |
 | 2.2.0 | 27-sep-2026 | Separa la investigación técnica del guion: el operador prepara el paquete de investigación y la presentadora solo lo convierte en una vista previa. |
+| 2.3.0 | 27-sep-2026 | Añade un workflow promocional independiente con marcadores en el texto hablado para datos comerciales faltantes y una declaración obligatoria de vigencia. |
 
 ### Punto de reanudación obligatorio en Codex
 
@@ -1059,6 +1060,7 @@ Una transición fallida no se salta. El sistema conserva el estado anterior y cr
 | `select-content-angle` | IA asistida | Facts + audiencia | Editorial brief | Opcional | Ambos |
 | `draft-vehicle-script` | IA | Brief + facts | Script draft | Sí, candidato nuevo | Operador |
 | `draft-presenter-script` | IA guiada | Brief + hechos candidatos con fuentes | Vista previa de guion no oficial | No | Revisión técnica obligatoria; no publicable |
+| `draft-promotional-script` | IA guiada | Identidad exacta + brief + oferta comercial opcional | Guion promocional con marcadores inline y declaración de vigencia | No | Revisión comercial obligatoria; no publicable |
 | `adapt-presenter-script` | IA guiada | Script aprobado para revisión + preferencias | Script revision | Solo nueva investigación | Presentadora + operador |
 | `create-shooting-plan` | IA guiada | Script aprobado | Shot list + checklist | Opcional | Operador |
 | `ingest-footage` | Determinista | Upload manifest | Footage manifest | No | Operador |
@@ -1257,6 +1259,15 @@ El paquete es específico por plataforma. No se copia ciegamente el mismo captio
 - Devuelve una vista previa en la conversación con fuentes y referencias por bloque.
 - No guarda el input o el output, modifica inventario, verifica hechos, incluye claims comerciales ni oficializa artefactos.
 - Exige revisión factual del operador y mantiene `publishable: false`.
+
+#### `$generar-guion-promocional`
+
+- Produce un borrador de venta separado del guion detallado y de la investigación técnica.
+- No investiga ni confirma precios, promociones, disponibilidad, financiamiento, condiciones o vigencia.
+- Coloca marcadores visibles directamente en el texto hablado cuando falta cualquier dato comercial; la vigencia siempre se declara y usa `[VIGENCIA POR CONFIRMAR]` si no hay fecha final confirmada.
+- Conserva importes, fechas, condiciones y referencias de fuentes confirmadas sin alterarlos.
+- Requiere revisión comercial antes de grabar o publicar; siempre mantiene `publishable: false`.
+- No persiste la oferta ni el borrador desde la skill.
 
 #### `$adaptar-guion`
 
@@ -1755,6 +1766,7 @@ Una fase no termina porque exista código. Requiere:
 | --- | --- |
 | Inputs y outputs obligatorios para IA textual | 12, 32, 33, 34, 35 |
 | Presentadora limitada a skills guiadas | 13, 36, 42 |
+| Guion promocional con términos y vigencia explícitos | 32, 36, 42, 44 |
 | Delegación por propósito | 14, 32, 37 |
 | Revisión de outputs anteriores por instancia principal | 14, 37, 38 |
 | Inventario canónico y hechos con fuentes | 28, 29, 30 |

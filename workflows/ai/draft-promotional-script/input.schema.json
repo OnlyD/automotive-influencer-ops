@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive-influencer-ops.local/workflows/draft-promotional-script/1.0.0/input.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["production_id", "vehicle", "editorial_brief", "offer_context"],
+  "properties": {
+    "production_id": { "type": "string", "pattern": "^prd_[a-zA-Z0-9_-]+$" },
+    "vehicle": { "type": "object", "additionalProperties": false, "required": ["vehicle_id", "year", "make", "model", "trim", "market"], "properties": {
+      "vehicle_id": { "type": "string", "pattern": "^veh_[a-zA-Z0-9_-]+$" }, "year": { "type": "integer", "minimum": 1886, "maximum": 2100 }, "make": { "type": "string", "minLength": 1 }, "model": { "type": "string", "minLength": 1 }, "trim": { "type": "string", "minLength": 1 }, "market": { "type": "string", "pattern": "^[A-Z]{2,3}$" }
+    } },
+    "editorial_brief": { "type": "object", "additionalProperties": false, "required": ["audience", "angle", "tone", "target_duration_seconds"], "properties": {
+      "audience": { "type": "string", "minLength": 1 }, "angle": { "type": "string", "minLength": 1 }, "tone": { "type": "string", "minLength": 1 }, "target_duration_seconds": { "type": "integer", "minimum": 15, "maximum": 300 }
+    } },
+    "offer_context": { "type": "object", "additionalProperties": false, "required": ["status", "price", "promotion_text", "availability_text", "financing_text", "eligibility_terms", "confirmed_by", "confirmed_at", "valid_from", "valid_until", "source_ids", "sources"], "properties": {
+      "status": { "enum": ["NOT_PROVIDED", "UNCONFIRMED", "CONFIRMED"] },
+      "price": { "oneOf": [ { "type": "null" }, { "type": "object", "additionalProperties": false, "required": ["amount", "currency"], "properties": { "amount": { "type": "number", "minimum": 0 }, "currency": { "type": "string", "pattern": "^[A-Z]{3}$" } } } ] },
+      "promotion_text": { "type": ["string", "null"] }, "availability_text": { "type": ["string", "null"] }, "financing_text": { "type": ["string", "null"] },
+      "eligibility_terms": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+      "confirmed_by": { "type": ["string", "null"] }, "confirmed_at": { "type": ["string", "null"], "format": "date-time" },
+      "valid_from": { "type": ["string", "null"], "format": "date-time" }, "valid_until": { "type": ["string", "null"], "format": "date-time" },
+      "source_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" } },
+      "sources": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["source_id", "description", "captured_at", "reference"], "properties": {
+        "source_id": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" }, "description": { "type": "string", "minLength": 1 }, "captured_at": { "type": "string", "format": "date-time" }, "reference": { "type": ["string", "null"], "format": "uri" }
+      } } }
+    } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "offer_context": { "type": "object", "properties": { "status": { "const": "CONFIRMED" } } } } },
+      "then": { "properties": { "offer_context": { "type": "object", "required": ["confirmed_by", "confirmed_at"], "properties": { "confirmed_by": { "type": "string", "minLength": 1 }, "confirmed_at": { "type": "string", "format": "date-time" }, "source_ids": { "type": "array", "minItems": 1 } } } } }
+    }
+  ]
+}

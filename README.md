@@ -16,6 +16,8 @@ The `pnpm` workspace and contracts package provide local build, typecheck, and t
 
 The initial C-track workflows are versioned under `workflows/ai/` and validated by the local `apps/ai-runner/`. They currently use an injected executor for deterministic testing; no model client or external service is connected. See `docs/ai-workflows.md`.
 
+The separate promotional script workflow leaves missing same-day dealership terms as visible placeholders in the spoken draft, always states offer validity or `[VIGENCIA POR CONFIRMAR]`, and requires commercial review before recording or publication.
+
 ## Local development
 
 Requirements: Node.js 20 or newer and pnpm 9.15.9 (selected by Corepack from `package.json`). Run `pnpm install`, `pnpm build`, `pnpm typecheck`, and `pnpm test` from the repository root.

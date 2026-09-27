@@ -13,9 +13,10 @@ async function readJson(path: string): Promise<unknown> {
   return JSON.parse(await readFile(path, "utf8")) as unknown;
 }
 
-test("registers only the approved versioned C workflows and rejects unknown versions", () => {
+test("registers only approved versioned workflows and rejects unknown versions", () => {
   assert.deepEqual([...registry.keys()].sort(), [
     "draft-presenter-script@1.0.0",
+    "draft-promotional-script@1.0.0",
     "draft-vehicle-script@1.0.0",
     "research-vehicle@1.0.0",
     "validate-vehicle-data@1.0.0",
@@ -45,7 +46,7 @@ test("finds the workflow registry when the runner is launched from its workspace
 });
 
 test("workflow templates and fictional output examples satisfy their registered schemas", async () => {
-  for (const workflowId of ["research-vehicle", "validate-vehicle-data", "draft-vehicle-script", "draft-presenter-script"]) {
+  for (const workflowId of ["research-vehicle", "validate-vehicle-data", "draft-vehicle-script", "draft-presenter-script", "draft-promotional-script"]) {
     const workflow = getRegisteredWorkflow(registry, workflowId, "1.0.0");
     const input = parse(await readFile(resolve(workflow.directory, "input.template.yaml"), "utf8")) as unknown;
     const output = await readJson(resolve(workflow.directory, "examples/fictional-output.json"));
@@ -54,6 +55,29 @@ test("workflow templates and fictional output examples satisfy their registered 
     assert.ok(workflow.prompt.length > 0, `${workflowId} prompt should not be empty`);
     await readFile(resolve(workflow.directory, "output.template.md"), "utf8");
   }
+});
+
+test("promotional draft exposes missing offer details and requires explicit validity copy", async () => {
+  const input = await readJson(resolve(workflowRoot, "draft-promotional-script/examples/fictional-input.json"));
+  const output = await readJson(resolve(workflowRoot, "draft-promotional-script/examples/fictional-output.json"));
+  const result = await executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => output);
+  assert.deepEqual(result, output);
+  const missingValidity = structuredClone(output) as { validity_disclosure: { spoken_text: string }; placeholders: string[] };
+  missingValidity.validity_disclosure.spoken_text = "Consulta los detalles con la agencia.";
+  missingValidity.placeholders = missingValidity.placeholders.filter((field) => field !== "VALIDITY");
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => missingValidity), /validity placeholder/);
+  const missingPromo = structuredClone(output) as { script: { promo_insert: { spoken_text: string } } };
+  missingPromo.script.promo_insert.spoken_text = "Pregunta por la oferta en la agencia.";
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => missingPromo), /in-script placeholder/);
+  let executorCalls = 0;
+  const unconfirmed = structuredClone(input) as { offer_context: { status: string; confirmed_by: string | null } };
+  unconfirmed.offer_context.status = "CONFIRMED";
+  unconfirmed.offer_context.confirmed_by = null;
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input: unconfirmed }, async () => {
+    executorCalls += 1;
+    return output;
+  }), /Invalid workflow input/);
+  assert.equal(executorCalls, 0, "invalid confirmed offer metadata must be rejected before model execution");
 });
 
 test("presenter can request only a provisional script and output references remain source-linked", async () => {
