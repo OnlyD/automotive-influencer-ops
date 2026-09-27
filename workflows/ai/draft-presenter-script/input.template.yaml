@@ -14,7 +14,7 @@ sources:
     retrieved_on: 2026-09-27
     source_type: manufacturer_official
 candidate_facts:
-  - candidate_fact_id: cfact_fixture_001
+  - candidate_fact_id: candidate_fixture_001
     label: Fictional test attribute
     value: 1
     unit: fixture_unit

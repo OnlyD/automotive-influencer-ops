@@ -11,6 +11,8 @@ The AI Runner registers four exact workflow IDs and versions. It validates input
 | `draft-vehicle-script@1.0.0` | Production brief and `VERIFIED` facts | Spanish script candidate, fact usage, source notes | Operator reviews before the draft can enter production |
 | `draft-presenter-script@1.0.0` | Spanish editorial brief and source-linked `CANDIDATE` facts | Non-official Spanish script preview with candidate/source references | Operator fact review required; never publishable or persisted by the presenter skill |
 
+`$investigar-vehiculo` is the operator interface for the registered research workflow. It returns a technical source bundle and a copyable Spanish handoff that preserves candidate and source IDs. `$generar-guion` accepts that handoff and performs only the drafting step; it does not search or supplement research.
+
 Schemas and prompt text are versioned with each workflow. Example files use fictional values and `example.invalid` sources. They are fixtures, not automotive guidance.
 
 ## Current execution boundary

@@ -10,6 +10,7 @@ The presenter needs to prepare an initial review script before a vehicle's facts
 ## Decision
 
 - Add the separate `draft-presenter-script@1.0.0` workflow for the presenter and technical operator.
+- The operator's `investigar-vehiculo` skill owns source discovery and prepares the research bundle; the presenter's `generar-guion` skill accepts that bundle and performs drafting only.
 - It may use only source-linked facts marked `CANDIDATE`; each factual script block must retain candidate fact and source references.
 - Its output is a chat preview only, always requires technical review, is never publishable, and is not persisted to inventory or production state by the skill.
 - Exclude commercial claims and any unsupported factual claims. The presenter may request creative changes without changing facts, sources, or warnings.
@@ -18,4 +19,4 @@ The presenter needs to prepare an initial review script before a vehicle's facts
 
 ## Consequences
 
-The presenter can receive a useful early draft without treating candidate facts as truth. The result cannot enter production until the operator reviews the sources and facts and separately advances it through the existing approval process. Research source access remains dependent on tools available in the active Codex conversation.
+The presenter can receive a useful early draft without treating candidate facts as truth. Research and drafting are separate requests with a human handoff between them. The result cannot enter production until the operator reviews the sources and facts and separately advances it through the existing approval process. Research source access remains dependent on tools available in the operator's active Codex conversation.

@@ -39,7 +39,7 @@
         "type": "object", "additionalProperties": false,
         "required": ["candidate_fact_id", "label", "value", "unit", "source_ids", "verification_status"],
         "properties": {
-          "candidate_fact_id": { "type": "string", "pattern": "^cfact_[a-zA-Z0-9_-]+$" },
+          "candidate_fact_id": { "type": "string", "pattern": "^candidate_[a-zA-Z0-9_-]+$" },
           "label": { "type": "string", "minLength": 1 },
           "value": { "type": ["string", "number", "boolean"] },
           "unit": { "type": ["string", "null"] },

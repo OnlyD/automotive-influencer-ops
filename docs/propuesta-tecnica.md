@@ -2,7 +2,7 @@
 
 **Estado:** ejecución autorizada; bootstrap e implementación incremental en curso  
 **Fecha de consolidación:** 27 de septiembre de 2026  
-**Versión de la especificación:** 2.1.0
+**Versión de la especificación:** 2.2.0
 **Nombre lógico del repositorio:** `automotive-content-ops`  
 **Responsable técnico y autoridad de integración:** operador técnico del proyecto  
 **Audiencia principal:** agente Codex que continuará la implementación, operador técnico y futuros mantenedores  
@@ -31,6 +31,7 @@ El acuerdo operativo del proyecto conserva las decisiones de colaboración y pro
 | 1.0.0 | 24-sep-2026 | Arquitectura inicial y decisiones de alto nivel. |
 | 2.0.0 | 27-sep-2026 | Conversión a especificación autocontenida de ejecución; incorpora inventario, contratos, workflows, skills, subagentes, operación, pruebas, riesgos y handoff. |
 | 2.1.0 | 27-sep-2026 | Añade una vista previa de guion para la presentadora con hechos candidatos enlazados a fuentes, revisión factual obligatoria y sin publicación ni persistencia. |
+| 2.2.0 | 27-sep-2026 | Separa la investigación técnica del guion: el operador prepara el paquete de investigación y la presentadora solo lo convierte en una vista previa. |
 
 ### Punto de reanudación obligatorio en Codex
 
@@ -468,7 +469,7 @@ delegation:
 
 La presentadora utilizará principalmente:
 
-- `$generar-guion` para solicitar una vista previa no oficial, con hechos candidatos y fuentes identificables; todos los hechos requieren revisión factual del operador.
+- `$generar-guion` para convertir un paquete de investigación del operador en una vista previa no oficial; no busca ni completa hechos.
 - `$adaptar-guion`
 - `$preparar-grabacion`
 - `$entregar-material`
@@ -1250,8 +1251,9 @@ El paquete es específico por plataforma. No se copia ciegamente el mismo captio
 
 #### `$generar-guion`
 
-- Solicita mercado, versión y objetivo editorial que falten.
-- Usa `draft-presenter-script` con hechos candidatos y fuentes identificables; no usa memoria del modelo como evidencia.
+- Exige un paquete de investigación producido por `$investigar-vehiculo`, con identidad exacta, hechos candidatos y fuentes identificables.
+- Convierte ese paquete en una vista previa mediante `draft-presenter-script`; no realiza investigación ni completa hechos faltantes.
+- Si falta el paquete o la identidad exacta, indica que el operador debe completar `$investigar-vehiculo` y detiene la generación.
 - Devuelve una vista previa en la conversación con fuentes y referencias por bloque.
 - No guarda el input o el output, modifica inventario, verifica hechos, incluye claims comerciales ni oficializa artefactos.
 - Exige revisión factual del operador y mantiene `publishable: false`.
@@ -1482,6 +1484,7 @@ Los endpoints concretos se derivan de estos recursos después de validar el fluj
 | Acción | Presentadora | Operador | Worker local | Sistema |
 | --- | --- | --- | --- | --- |
 | Consultar producción asignada | Sí | Sí | Limitado | Sí |
+| Investigar vehículo y entregar paquete de fuentes candidato | No | Sí | No | Valida |
 | Solicitar vista previa no oficial con hechos candidatos enlazados a fuentes | Sí | Sí | No | Valida |
 | Adaptar campos creativos | Sí | Sí | No | Valida |
 | Modificar hechos | No | Sí, con evidencia | No | Valida |
@@ -1644,7 +1647,8 @@ Entregables:
 
 Entregables:
 
-- `$generar-guion` para vista previa no oficial basada en hechos candidatos con fuentes y revisión factual obligatoria.
+- `$investigar-vehiculo` del operador para preparar el paquete investigado y su handoff en español.
+- `$generar-guion` de la presentadora para convertir únicamente ese paquete en una vista previa no oficial, con revisión factual obligatoria.
 - `$adaptar-guion`, `$preparar-grabacion` y `$entregar-material`.
 - Manejo de preguntas faltantes.
 - Diffs y protección de campos bloqueados.

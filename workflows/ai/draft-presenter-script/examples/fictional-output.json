@@ -6,12 +6,12 @@
     "target_duration_seconds": 30,
     "blocks": [
       { "id": "hook", "target_range_seconds": [0, 5], "spoken_text": "Hoy te cuento un dato de ejemplo sobre este vehículo ficticio.", "on_screen_text": null, "shot_intent": "Presentar el vehículo sin afirmar especificaciones no documentadas.", "candidate_fact_refs": [], "source_refs": [], "clip_candidate": false },
-      { "id": "detail", "target_range_seconds": [5, 25], "spoken_text": "La ficha ficticia menciona un atributo de prueba con valor uno; falta confirmar qué significa para el uso diario.", "on_screen_text": "Dato de prueba: 1", "shot_intent": "Mostrar un detalle visual neutral y dejar la interpretación para revisión.", "candidate_fact_refs": ["cfact_fixture_001"], "source_refs": ["src_fixture_001"], "clip_candidate": true },
+      { "id": "detail", "target_range_seconds": [5, 25], "spoken_text": "La ficha ficticia menciona un atributo de prueba con valor uno; falta confirmar qué significa para el uso diario.", "on_screen_text": "Dato de prueba: 1", "shot_intent": "Mostrar un detalle visual neutral y dejar la interpretación para revisión.", "candidate_fact_refs": ["candidate_fixture_001"], "source_refs": ["src_fixture_001"], "clip_candidate": true },
       { "id": "close", "target_range_seconds": [25, 30], "spoken_text": "Este dato todavía requiere revisión; después podremos explicarlo con contexto.", "on_screen_text": null, "shot_intent": "Cerrar recordando que se trata de una vista previa.", "candidate_fact_refs": [], "source_refs": [], "clip_candidate": false }
     ],
     "closing_cta": { "spoken_text": "¿Qué otro detalle te gustaría conocer cuando esté confirmado?" }
   },
-  "candidate_fact_usage": [{ "candidate_fact_id": "cfact_fixture_001", "used_in_blocks": ["detail"] }],
+  "candidate_fact_usage": [{ "candidate_fact_id": "candidate_fixture_001", "used_in_blocks": ["detail"] }],
   "sources_used": ["src_fixture_001"],
   "technical_review_required": true,
   "publishable": false,

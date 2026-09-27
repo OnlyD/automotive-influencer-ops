@@ -2,7 +2,7 @@
   "production_id": "prd_example",
   "vehicle": { "vehicle_id": "veh_example", "year": 2025, "make": "Honda", "model": "Example model", "trim": "Fictional trim", "market": "US" },
   "sources": [{ "source_id": "src_fixture_001", "title": "Fictional manufacturer specification page", "publisher": "Example Manufacturer", "url": "https://example.invalid/fictional-vehicle", "retrieved_on": "2026-09-27", "source_type": "manufacturer_official" }],
-  "candidate_facts": [{ "candidate_fact_id": "cfact_fixture_001", "label": "Fictional test attribute", "value": 1, "unit": "fixture_unit", "source_ids": ["src_fixture_001"], "verification_status": "CANDIDATE" }],
+  "candidate_facts": [{ "candidate_fact_id": "candidate_fixture_001", "label": "Fictional test attribute", "value": 1, "unit": "fixture_unit", "source_ids": ["src_fixture_001"], "verification_status": "CANDIDATE" }],
   "editorial_brief": { "audience": "Spanish-speaking vehicle shoppers", "angle": "Explain one useful attribute", "tone": "Clear and natural", "target_duration_seconds": 30, "target_clip_count": 1 },
   "constraints": { "language": "es", "format": "vertical_video", "prohibited_claims": [] }
 }
