@@ -11,6 +11,8 @@
 - Use English for all technical files and technical work: source code, identifiers, schemas, contracts, prompts used internally, agent instructions, engineering documentation, and operational interfaces for the technical operator.
 - The influencer's primary language is Spanish. Every direct interaction with her must always be in Spanish, including skill questions, instructions, errors, explanations, and generated user-facing content. Do not switch her to English.
 - The presenter onboarding skill is exclusive to the influencer's workflow. Invoking it sets presenter context; it does not authenticate a person or grant technical permissions. The technical operator does not use that skill for technical work.
+- Use `actualizar-influencer` for the presenter's Spanish-only role context and approved workflows. It may create a new, presenter-reviewed Spanish defect report only under `docs/feedback/influencer/`; it must not edit technical artifacts or existing reports.
+- Use `actualizar-tecnico` for the technical operator's English-language role context. Neither role skill verifies identity or enforces filesystem permissions.
 - Do not infer who is using Codex from the conversation, device, or Git configuration. Keep requester attribution, declared artifact authorship, and Git commit identity distinct.
 - Follow the responsibilities and human approval gates in the specification.
 

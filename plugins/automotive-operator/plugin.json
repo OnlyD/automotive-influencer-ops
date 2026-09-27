@@ -1,0 +1,18 @@
+{
+  "name": "automotive-operator",
+  "version": "0.1.0+codex.20260927192436",
+  "description": "English-language technical workflows for the automotive content operator.",
+  "author": {
+    "name": "Automotive Content Ops"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Automotive Operator",
+    "shortDescription": "Technical workflows for the project operator.",
+    "longDescription": "Operator tools for maintaining and extending the automotive content operation.",
+    "developerName": "Automotive Content Ops",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Help me continue technical work on the automotive content operation."
+  }
+}
