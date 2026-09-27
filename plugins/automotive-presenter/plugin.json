@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "automotive-presenter",
+  "version": "0.1.0",
+  "description": "Presenter's Spanish-language workflows for automotive content operations.",
+  "author": "Automotive Content Ops",
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/openai/plugins/main/marketplace.schema.json",
+  "name": "automotive-influencer-ops",
+  "interface": {
+    "displayName": "Herramientas de contenido automotriz"
+  },
+  "plugins": [
+    {
+      "name": "automotive-presenter",
+      "source": {
+        "source": "local",
+        "path": "./plugins/automotive-presenter"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity",
+      "interface": {
+        "displayName": "Automotive Presenter",
+        "shortDescription": "Herramientas de trabajo para la presentadora.",
+        "longDescription": "Skills en español para actualizar herramientas, adaptar guiones, preparar grabaciones y entregar material."
+      }
+    }
+  ]
+}
