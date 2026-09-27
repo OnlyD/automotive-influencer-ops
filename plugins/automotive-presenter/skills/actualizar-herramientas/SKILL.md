@@ -1,6 +1,6 @@
 ---
 name: actualizar-herramientas
-description: Update the presenter's local project checkout and refresh the approved Automotive Presenter plugin from the project's main branch. Use when the influencer asks to update the repository, skills, or their latest versions.
+description: Update the presenter's installed Automotive Presenter skills and, when safe, synchronize the project checkout. Use when the influencer asks to update the repository, skills, or their latest versions.
 ---
 
 # Actualizar herramientas de la presentadora
@@ -9,39 +9,33 @@ This skill is exclusively for the influencer. Keep every message addressed to he
 
 ## Purpose and boundaries
 
-Synchronize the existing project checkout with the approved `main` branch, then refresh the Automotive Presenter plugin through Codex's configured marketplace. Never copy skill files manually into Codex directories. Never install from an unrecognized source.
+Refresh the approved Automotive Presenter plugin from the project's GitHub marketplace so the influencer does not need to use a terminal. Then update the project checkout when it can be fast-forwarded safely. Never copy skill files manually into Codex directories or install from an unrecognized source.
 
-The influencer invokes this skill to request an update. Invocation authorizes this workflow to fetch and fast-forward the project checkout and refresh only the Automotive Presenter marketplace. It does not authorize committing, pushing, changing the remote, changing branches, overwriting local work, or installing another plugin.
+Invoking this skill authorizes it to refresh only the `automotive-influencer-ops` marketplace, update the installed `automotive-presenter` plugin from that marketplace, and fast-forward the project checkout from `origin/main` when the checkout is clean and already on `main`. It does not authorize committing, pushing, changing remotes or branches, overwriting local work, or installing another plugin.
 
-## Preconditions
-
-1. Identify the project root using `git rev-parse --show-toplevel`.
-2. Confirm that `origin` is exactly `https://github.com/OnlyD/automotive-influencer-ops.git` (the SSH equivalent is allowed only if it resolves to the same repository).
-3. Confirm the current branch is `main`.
-4. Check `git status --porcelain`. If the checkout is not clean, stop before fetching or changing files. Explain in Spanish that local changes need the technical operator's help; never stash, discard, commit, or overwrite them.
-5. Confirm the `codex` CLI is available before trying to refresh a marketplace. If unavailable, synchronize nothing and provide the manual next step in Spanish.
-
-If the project root, remote, or branch does not match these conditions, stop and explain the mismatch in Spanish. Never change repository configuration to make the check pass.
+The skill instructions loaded for the current conversation are the installed copy that started this run. A marketplace refresh cannot replace the instructions already in the active context; updated instructions take effect in a new conversation after Codex reloads the plugin.
 
 ## Update procedure
 
-1. Fetch only `origin main` with `git fetch origin main`.
-2. Compare `HEAD` with `origin/main`. If they are identical, tell her the project checkout is already current and continue to the marketplace check.
-3. If `origin/main` is ahead, report in Spanish how many commits will be received and show a concise, human-readable summary of changed areas. Do not expose raw diffs, code, JSON, or Git terminology unless she asks.
-4. Fast-forward only with `git pull --ff-only origin main`. If Git reports divergence, a conflict, or any error, stop without resolving it and explain in Spanish that the technical operator must review it.
-5. Run `codex plugin marketplace list` and identify the marketplace whose source is this repository. Do not upgrade unrelated marketplaces.
-6. If this repository marketplace is not configured, add it with `codex plugin marketplace add https://github.com/OnlyD/automotive-influencer-ops.git --ref main`. Explain in Spanish that this registers the project's approved plugin catalog in Codex.
-7. Refresh only this repository marketplace with `codex plugin marketplace upgrade <marketplace-name>`, using the exact name reported by the CLI. Do not guess a marketplace name. If the CLI reports that the plugin is not installed, explain the next step in Spanish and let the influencer or operator install `Automotive Presenter` from the Plugins Directory; do not invoke unrelated installation commands.
-8. Report the resulting repository revision and marketplace result in Spanish. If Codex requires a restart or a new conversation to load updated instructions, say so plainly. Do not claim the active conversation has loaded a newly updated copy of this skill.
+1. Start with a short Spanish message: “Voy a revisar y actualizar tus herramientas. También comprobaré si el proyecto tiene cambios locales para protegerlos.”
+2. Confirm the Codex CLI is available. If it is not, stop and explain in Spanish that the technical operator must finish the update; do not ask the influencer to run terminal commands.
+3. Run `codex plugin marketplace list`. Identify the exact `automotive-influencer-ops` marketplace. If it is missing, add only the approved source `https://github.com/OnlyD/automotive-influencer-ops.git` on `main`, then confirm it appears in the list. Do not change or upgrade unrelated marketplaces.
+4. Refresh the marketplace first with `codex plugin marketplace upgrade automotive-influencer-ops`. This step is independent of the project's working tree state. If it fails, stop and explain the problem in Spanish; do not claim the skills were refreshed.
+5. Run `codex plugin list` and confirm `automotive-presenter@automotive-influencer-ops` is installed and enabled. Report the marketplace refresh result without exposing raw command output or requiring the influencer to interpret versions.
+6. Check the active project checkout. Use `git rev-parse --show-toplevel`, `git remote get-url origin`, `git branch --show-current`, and `git status --porcelain` to verify the expected repository, remote, `main` branch, and whether local changes exist. Never change repository settings to make these checks pass.
+7. If the checkout is the expected repository on `main` and clean, run `git fetch origin main`, compare `HEAD` with `origin/main`, and use `git pull --ff-only origin main` only if `origin/main` is ahead. If it is already current, leave it unchanged.
+8. If the checkout root or remote is not the expected project, or if it has local changes, is on another branch, or has diverged, do not pull or modify it. The marketplace/plugin refresh remains complete; explain in Spanish that project files were left untouched and the technical operator can help update them. Never change the remote, stash, discard, commit, push, merge, or resolve conflicts.
+9. Summarize separately in Spanish whether the presenter skills refreshed and whether the project checkout updated, was already current, or was safely left untouched. Tell her to open a new Codex conversation (and restart Codex if required) to load refreshed skill instructions. Never claim the current conversation has switched to the new skill copy.
 
 ## Spanish user-facing messages
 
 Use natural, concise Spanish. For example:
 
-- Before updating: “Voy a revisar si hay una actualización aprobada para el proyecto y sus herramientas. No cambiaré tus archivos locales.”
-- Local changes found: “Encontré cambios locales en el proyecto. Para protegerlos, detuve la actualización. Pídele al operador técnico que los revise contigo.”
-- Update completed: “El proyecto y las herramientas quedaron actualizados. Para usar las instrucciones nuevas, abre una conversación nueva en Codex.”
-- No update: “El proyecto ya está actualizado. Revisé también el catálogo de herramientas.”
-- Error: “No pude terminar la actualización y no resolví el problema automáticamente. El operador técnico puede revisar el estado del proyecto.”
+- Starting: “Voy a revisar y actualizar tus herramientas. También comprobaré si el proyecto tiene cambios locales para protegerlos.”
+- Skills updated, project clean: “Las herramientas y el proyecto están actualizados. Abre una conversación nueva para usar las instrucciones más recientes.”
+- Skills updated, local changes found: “Las herramientas quedaron actualizadas. Dejé intactos los cambios locales del proyecto; el operador técnico puede ayudarte a actualizar esos archivos.”
+- Already current: “Las herramientas y el proyecto ya están actualizados. Abre una conversación nueva para usar las instrucciones más recientes.”
+- Marketplace error: “No pude actualizar las herramientas, así que no cambié los archivos del proyecto. El operador técnico puede revisar la conexión.”
+- CLI unavailable: “No pude actualizar las herramientas desde esta sesión. El operador técnico puede completar la actualización por ti.”
 
 Never make the influencer read English instructions, command output, diffs, or error messages to complete this workflow.
