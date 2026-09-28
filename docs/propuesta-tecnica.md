@@ -2,7 +2,7 @@
 
 **Estado:** ejecución autorizada; bootstrap e implementación incremental en curso  
 **Fecha de consolidación:** 27 de septiembre de 2026  
-**Versión de la especificación:** 2.3.0
+**Versión de la especificación:** 2.6.0
 **Nombre lógico del repositorio:** `automotive-content-ops`  
 **Responsable técnico y autoridad de integración:** operador técnico del proyecto  
 **Audiencia principal:** agente Codex que continuará la implementación, operador técnico y futuros mantenedores  
@@ -33,6 +33,9 @@ El acuerdo operativo del proyecto conserva las decisiones de colaboración y pro
 | 2.1.0 | 27-sep-2026 | Añade una vista previa de guion para la presentadora con hechos candidatos enlazados a fuentes, revisión factual obligatoria y sin publicación ni persistencia. |
 | 2.2.0 | 27-sep-2026 | Separa la investigación técnica del guion: el operador prepara el paquete de investigación y la presentadora solo lo convierte en una vista previa. |
 | 2.3.0 | 27-sep-2026 | Añade un workflow promocional independiente con marcadores en el texto hablado para datos comerciales faltantes y una declaración obligatoria de vigencia. |
+| 2.4.0 | 27-sep-2026 | Define documentos Word de cuatro columnas para la presentadora, conserva JSON como formato interno, permite usar condiciones aportadas por ella sin presentarlas como confirmadas, y elimina la skill genérica duplicada del operador. |
+| 2.5.0 | 27-sep-2026 | Requiere integrar dos o tres datos de investigación relevantes en la reseña detallada de la presentadora cuando el paquete tenga información suficiente. |
+| 2.6.0 | 27-sep-2026 | Requiere que el guion promocional consuma investigación separada y use solo dos o tres datos atractivos y pertinentes de la unidad. |
 
 ### Punto de reanudación obligatorio en Codex
 
@@ -470,7 +473,7 @@ delegation:
 
 La presentadora utilizará principalmente:
 
-- `$generar-guion` para convertir un paquete de investigación del operador en una vista previa no oficial; no busca ni completa hechos.
+- `$generar-guion` para convertir un paquete de investigación del operador en un borrador Word no oficial que incorpora dos o tres hechos relevantes con sus fuentes; no busca ni completa hechos.
 - `$adaptar-guion`
 - `$preparar-grabacion`
 - `$entregar-material`
@@ -479,7 +482,7 @@ Una solicitud como:
 
 > `$adaptar-guion Quiero que suene más natural y menos formal.`
 
-debe localizar el guion aprobado, cargar el contrato correcto y permitir cambios únicamente en los campos editables. `$generar-guion` es una excepción limitada: solo produce una vista previa en la conversación, no persiste ni oficializa el resultado, mantiene cada afirmación candidata enlazada a su fuente y no permite publicar.
+debe localizar el guion aprobado, cargar el contrato correcto y permitir cambios únicamente en los campos editables. `$generar-guion` es una excepción limitada: produce un borrador Word local, no persiste ni oficializa el resultado, mantiene cada afirmación candidata enlazada a su fuente y no permite publicar.
 
 La presentadora no necesita:
 
@@ -1060,7 +1063,7 @@ Una transición fallida no se salta. El sistema conserva el estado anterior y cr
 | `select-content-angle` | IA asistida | Facts + audiencia | Editorial brief | Opcional | Ambos |
 | `draft-vehicle-script` | IA | Brief + facts | Script draft | Sí, candidato nuevo | Operador |
 | `draft-presenter-script` | IA guiada | Brief + hechos candidatos con fuentes | Vista previa de guion no oficial | No | Revisión técnica obligatoria; no publicable |
-| `draft-promotional-script` | IA guiada | Identidad exacta + brief + oferta comercial opcional | Guion promocional con marcadores inline y declaración de vigencia | No | Revisión comercial obligatoria; no publicable |
+| `draft-promotional-script` | IA guiada | Identidad exacta + brief + investigación del vehículo con fuentes + oferta comercial opcional | Guion promocional con dos o tres hechos atractivos, marcadores comerciales inline y declaración de vigencia | No | Revisión comercial y factual obligatoria; no publicable |
 | `adapt-presenter-script` | IA guiada | Script aprobado para revisión + preferencias | Script revision | Solo nueva investigación | Presentadora + operador |
 | `create-shooting-plan` | IA guiada | Script aprobado | Shot list + checklist | Opcional | Operador |
 | `ingest-footage` | Determinista | Upload manifest | Footage manifest | No | Operador |
@@ -1255,17 +1258,21 @@ El paquete es específico por plataforma. No se copia ciegamente el mismo captio
 
 - Exige un paquete de investigación producido por `$investigar-vehiculo`, con identidad exacta, hechos candidatos y fuentes identificables.
 - Convierte ese paquete en una vista previa mediante `draft-presenter-script`; no realiza investigación ni completa hechos faltantes.
+- Selecciona dos o tres hechos pertinentes para la audiencia y el ángulo editorial, sin convertir el guion en una ficha técnica; si la investigación tiene menos de dos hechos utilizables, advierte que hace falta contexto.
 - Si falta el paquete o la identidad exacta, indica que el operador debe completar `$investigar-vehiculo` y detiene la generación.
-- Devuelve una vista previa en la conversación con fuentes y referencias por bloque.
+- Devuelve un documento Word en español con una tabla de cuatro columnas: tiempo/escena, guía visual breve, narración hablada y texto en pantalla. Las fuentes se presentan con nombres legibles, sin IDs internos.
+- El JSON y los schemas son internos y no se muestran como respuesta a la presentadora.
 - No guarda el input o el output, modifica inventario, verifica hechos, incluye claims comerciales ni oficializa artefactos.
 - Exige revisión factual del operador y mantiene `publishable: false`.
 
 #### `$generar-guion-promocional`
 
-- Produce un borrador de venta separado del guion detallado y de la investigación técnica.
-- No investiga ni confirma precios, promociones, disponibilidad, financiamiento, condiciones o vigencia.
-- Coloca marcadores visibles directamente en el texto hablado cuando falta cualquier dato comercial; la vigencia siempre se declara y usa `[VIGENCIA POR CONFIRMAR]` si no hay fecha final confirmada.
+- Produce un borrador de venta separado del guion detallado y consume una investigación técnica previa de la unidad exacta.
+- Selecciona solo dos o tres hechos atractivos y relevantes de la investigación para la audiencia y el ángulo promocional; no resume el paquete completo ni investiga hechos adicionales.
+- No investiga ni confirma precios, promociones, disponibilidad, financiamiento, condiciones o vigencia. Puede usar literalmente información que la presentadora proporcione, con estado no verificado, para preparar el borrador.
+- Coloca marcadores visibles en el texto hablado solo para campos faltantes o que la presentadora señale como inciertos. La vigencia se menciona en el cierre; cuando falte, usa `[VIGENCIA POR CONFIRMAR]` tanto en narración como en texto en pantalla.
 - Conserva importes, fechas, condiciones y referencias de fuentes confirmadas sin alterarlos.
+- Entrega un documento Word con las mismas cuatro columnas que la skill de reseñas detalladas. No muestra JSON, schemas, IDs de workflows, preguntas para la agencia ni anexos técnicos. Incluye una sola nota breve si quedan campos por confirmar.
 - Requiere revisión comercial antes de grabar o publicar; siempre mantiene `publishable: false`.
 - No persiste la oferta ni el borrador desde la skill.
 
@@ -1302,7 +1309,7 @@ El plugin del operador debe ofrecer interfaces para:
 - Investigar un vehículo.
 - Validar hechos y resolver conflictos.
 - Seleccionar el ángulo editorial.
-- Generar y revisar guiones.
+- Ejecutar el workflow técnico registrado `draft-vehicle-script` y revisar sus resultados; no ofrecer una skill genérica duplicada de generación de guiones a la presentadora.
 - Generar planes de grabación.
 - Registrar material, máster y clips.
 - Preparar paquetes de publicación.
@@ -1316,10 +1323,10 @@ Los nombres definitivos de las skills pueden ajustarse antes de publicarlas, per
 
 - Una skill pregunta solo por campos faltantes.
 - Las preguntas deben ser cortas y comprensibles para el rol.
-- La presentadora no ve JSON salvo que lo solicite expresamente.
+- La presentadora recibe documentos humanos en español y nunca recibe JSON crudo ni schemas; los contratos estructurados se conservan internamente para validación e indexación técnica.
 - La skill muestra qué se modificará antes de ejecutar una acción irreversible.
 - Errores deben indicar causa, elemento afectado y siguiente acción segura.
-- La salida humana y la salida estructurada se generan desde el mismo resultado validado.
+- La salida humana y la salida estructurada se generan desde el mismo resultado validado. Para la presentadora, el resultado estructurado se conserva internamente y la interfaz entrega el documento Word legible.
 
 ## 37. Política detallada de subagentes
 

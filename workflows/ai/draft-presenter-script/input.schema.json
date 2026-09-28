@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://automotive-influencer-ops.local/workflows/draft-presenter-script/1.0.0/input.schema.json",
+  "$id": "https://automotive-influencer-ops.local/workflows/draft-presenter-script/1.1.0/input.schema.json",
   "type": "object",
   "additionalProperties": false,
   "required": ["production_id", "vehicle", "sources", "candidate_facts", "editorial_brief", "constraints"],

@@ -3,6 +3,8 @@
 - Status: Accepted
 - Date: 2026-09-27
 
+The presenter-facing output contract in this ADR was superseded by [ADR-0007](ADR-0007-presenter-word-deliverables.md). The later versions preserve its review gates while incorporating the updated document behavior and the selected vehicle-research facts documented in [ADR-0009](ADR-0009-promotional-drafts-use-selected-vehicle-facts.md).
+
 ## Context
 
 Promotional videos need same-day dealership terms such as price, availability, incentives, financing, credit eligibility, and offer validity. These details may be unknown while a draft is being prepared. Blocking all drafting until the dealership confirms every term would prevent early preparation, while omitting missing terms could make a draft appear complete or invite unsupported claims. Detailed vehicle research and promotional terms also have separate owners and lifecycles.

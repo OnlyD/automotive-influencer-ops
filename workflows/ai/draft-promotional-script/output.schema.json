@@ -1,23 +1,54 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://automotive-influencer-ops.local/workflows/draft-promotional-script/1.0.0/output.schema.json",
-  "type": "object", "additionalProperties": false,
+  "$id": "https://automotive-influencer-ops.local/workflows/draft-promotional-script/1.2.0/output.schema.json",
+  "type": "object",
+  "additionalProperties": false,
   "required": ["production_id", "workflow", "script", "validity_disclosure", "placeholders", "commercial_review_required", "publishable", "warnings"],
   "properties": {
     "production_id": { "type": "string", "pattern": "^prd_[a-zA-Z0-9_-]+$" },
-    "workflow": { "type": "object", "additionalProperties": false, "required": ["id", "version"], "properties": { "id": { "const": "draft-promotional-script" }, "version": { "const": "1.0.0" } } },
-    "script": { "type": "object", "additionalProperties": false, "required": ["title", "target_duration_seconds", "opening", "promo_insert", "closing"], "properties": {
-      "title": { "type": "string", "minLength": 1 }, "target_duration_seconds": { "type": "integer", "minimum": 15, "maximum": 300 }, "opening": { "type": "string", "minLength": 1 },
-      "promo_insert": { "type": "object", "additionalProperties": false, "required": ["spoken_text", "on_screen_text", "used_offer_fields", "source_refs"], "properties": {
-        "spoken_text": { "type": "string", "minLength": 1 }, "on_screen_text": { "type": "string", "minLength": 1 },
-        "used_offer_fields": { "type": "array", "uniqueItems": true, "items": { "enum": ["price", "promotion_text", "availability_text", "financing_text", "eligibility_terms"] } },
-        "source_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" } }
-      } }, "closing": { "type": "string", "minLength": 1 }
-    } },
-    "validity_disclosure": { "type": "object", "additionalProperties": false, "required": ["status", "spoken_text", "on_screen_text", "valid_until"], "properties": {
-      "status": { "enum": ["CONFIRMED_UNTIL", "CONFIRMED_NO_END_DATE", "PENDING"] }, "spoken_text": { "type": "string", "minLength": 1 }, "on_screen_text": { "type": "string", "minLength": 1 }, "valid_until": { "type": ["string", "null"], "format": "date-time" }
-    } },
+    "workflow": {
+      "type": "object", "additionalProperties": false, "required": ["id", "version"],
+      "properties": { "id": { "const": "draft-promotional-script" }, "version": { "const": "1.2.0" } }
+    },
+    "script": {
+      "type": "object", "additionalProperties": false,
+      "required": ["title", "target_duration_seconds", "scenes"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "target_duration_seconds": { "type": "integer", "minimum": 15, "maximum": 600 },
+        "scenes": {
+          "type": "array", "minItems": 3,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "type", "target_range_seconds", "label", "visual_direction", "spoken_text", "on_screen_text", "used_vehicle_fact_refs", "used_offer_fields", "source_refs"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
+              "type": { "enum": ["opening", "promotion", "detail", "closing"] },
+              "target_range_seconds": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
+              "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+              "visual_direction": { "type": "string", "minLength": 1, "maxLength": 140 },
+              "spoken_text": { "type": "string", "minLength": 1 },
+              "on_screen_text": { "type": ["string", "null"] },
+              "used_vehicle_fact_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^candidate_[a-zA-Z0-9_-]+$" } },
+              "used_offer_fields": { "type": "array", "uniqueItems": true, "items": { "enum": ["price", "promotion_text", "availability_text", "financing_text", "eligibility_terms"] } },
+              "source_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^src_[a-zA-Z0-9_-]+$" } }
+            }
+          }
+        }
+      }
+    },
+    "validity_disclosure": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "valid_until", "scene_id"],
+      "properties": {
+        "status": { "enum": ["PENDING", "PRESENTER_PROVIDED_UNTIL", "CONFIRMED_UNTIL"] },
+        "valid_until": { "type": ["string", "null"], "format": "date-time" },
+        "scene_id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" }
+      }
+    },
     "placeholders": { "type": "array", "uniqueItems": true, "items": { "enum": ["PRICE", "PROMOTION", "AVAILABILITY", "FINANCING", "ELIGIBILITY", "VALIDITY"] } },
-    "commercial_review_required": { "const": true }, "publishable": { "const": false }, "warnings": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+    "commercial_review_required": { "const": true },
+    "publishable": { "const": false },
+    "warnings": { "type": "array", "minItems": 1, "items": { "type": "string" } }
   }
 }

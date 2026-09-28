@@ -1,7 +1,7 @@
 {
   "name": "automotive-presenter",
   "version": "0.1.0+codex.20260927192436",
-  "description": "Herramientas en español para guiones promocionales, reseñas detalladas, adaptación y preparación de grabaciones.",
+  "description": "Guiones promocionales y reseñas detalladas en Word, siempre en español.",
   "author": {
     "name": "Automotive Content Ops"
   },
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Presentadora Automotriz",
     "shortDescription": "Herramientas de contenido para la presentadora.",
-    "longDescription": "Skills en español para actualizar herramientas, iniciar el contexto de la presentadora, crear borradores promocionales con placeholders, preparar reseñas detalladas, adaptar guiones, preparar grabaciones y entregar material.",
+    "longDescription": "Skills en español para generar Word de guiones promocionales o reseñas detalladas, actualizar herramientas, adaptar guiones y preparar grabaciones. El JSON y los esquemas técnicos son internos.",
     "developerName": "Automotive Content Ops",
     "category": "Productivity",
     "capabilities": [],

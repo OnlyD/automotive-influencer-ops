@@ -1,6 +1,15 @@
 {
   "production_id": "prd_example",
   "vehicle": { "vehicle_id": "veh_example", "year": 2025, "make": "Honda", "model": "Example model", "trim": "Fictional trim", "market": "US" },
-  "editorial_brief": { "audience": "Spanish-speaking vehicle shoppers", "angle": "Invite viewers to ask about a current offer without overstating terms", "tone": "Clear and warm", "target_duration_seconds": 45 },
+  "vehicle_research": {
+    "candidate_facts": [
+      { "candidate_fact_id": "candidate_fixture_001", "label": "Fictional electric range", "value": 75, "unit": "fixture_km", "source_ids": ["src_vehicle_fixture"], "verification_status": "CANDIDATE" },
+      { "candidate_fact_id": "candidate_fixture_002", "label": "Fictional display size", "value": 8, "unit": "fixture_inches", "source_ids": ["src_vehicle_fixture"], "verification_status": "CANDIDATE" },
+      { "candidate_fact_id": "candidate_fixture_003", "label": "Fictional cargo capacity", "value": 400, "unit": "fixture_liters", "source_ids": ["src_vehicle_fixture"], "verification_status": "CANDIDATE" },
+      { "candidate_fact_id": "candidate_fixture_004", "label": "Fictional accessory count", "value": 2, "unit": "fixture_items", "source_ids": ["src_vehicle_fixture"], "verification_status": "CANDIDATE" }
+    ],
+    "sources": [{ "source_id": "src_vehicle_fixture", "title": "Fictional manufacturer vehicle specifications", "publisher": "Example Manufacturer", "url": "https://example.invalid/fictional-vehicle", "retrieved_on": "2026-09-27", "source_type": "manufacturer_official" }]
+  },
+  "editorial_brief": { "audience": "Spanish-speaking vehicle shoppers", "angle": "Invite viewers to ask about a current offer without overstating terms", "tone": "Clear and warm", "target_duration_seconds": 60 },
   "offer_context": { "status": "NOT_PROVIDED", "price": null, "promotion_text": null, "availability_text": null, "financing_text": null, "eligibility_terms": [], "confirmed_by": null, "confirmed_at": null, "valid_from": null, "valid_until": null, "source_ids": [], "sources": [] }
 }

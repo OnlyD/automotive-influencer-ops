@@ -5,6 +5,7 @@ import test from "node:test";
 import { parse } from "yaml";
 import { fileURLToPath } from "node:url";
 import { executeRegisteredWorkflow, getRegisteredWorkflow, loadWorkflowRegistry, parseRunnerCliArguments, runWorkflowCli } from "../src/index.js";
+import { createPresenterDocumentModel, renderPresenterDocumentDocx } from "../src/presenter-document.js";
 
 const workflowRoot = resolve(fileURLToPath(new URL("../../../workflows/ai", import.meta.url)));
 const registry = await loadWorkflowRegistry(workflowRoot);
@@ -15,8 +16,8 @@ async function readJson(path: string): Promise<unknown> {
 
 test("registers only approved versioned workflows and rejects unknown versions", () => {
   assert.deepEqual([...registry.keys()].sort(), [
-    "draft-presenter-script@1.0.0",
-    "draft-promotional-script@1.0.0",
+    "draft-presenter-script@1.1.0",
+    "draft-promotional-script@1.2.0",
     "draft-vehicle-script@1.0.0",
     "research-vehicle@1.0.0",
     "validate-vehicle-data@1.0.0",
@@ -27,11 +28,15 @@ test("registers only approved versioned workflows and rejects unknown versions",
 
 test("CLI accepts only a registered workflow reference and one input path", async () => {
   assert.deepEqual(parseRunnerCliArguments(["draft-vehicle-script@1.0.0", "--input", "brief.yaml"]), {
-    workflowId: "draft-vehicle-script", workflowVersion: "1.0.0", role: "technical-operator", inputPath: "brief.yaml",
+    workflowId: "draft-vehicle-script", workflowVersion: "1.0.0", role: "technical-operator", inputPath: "brief.yaml", format: "json",
   });
-  assert.equal(parseRunnerCliArguments(["draft-presenter-script@1.0.0", "--input", "brief.yaml", "--role", "presenter"]).role, "presenter");
+  assert.equal(parseRunnerCliArguments(["draft-presenter-script@1.1.0", "--input", "brief.yaml", "--role", "presenter"]).role, "presenter");
+  assert.deepEqual(parseRunnerCliArguments(["draft-promotional-script@1.2.0", "--input", "brief.json", "--role", "presenter", "--format", "word", "--output", ".local/drafts/script.docx"]), {
+    workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", inputPath: "brief.json", format: "word", outputPath: ".local/drafts/script.docx",
+  });
   assert.throws(() => parseRunnerCliArguments(["draft-vehicle-script@latest", "--input", "brief.yaml"]), /Usage/);
-  assert.throws(() => parseRunnerCliArguments(["draft-vehicle-script@1.0.0", "--input", "brief.yaml", "--output", "x"]), /Only one/);
+  assert.throws(() => parseRunnerCliArguments(["draft-vehicle-script@1.0.0", "--input", "brief.yaml", "--output", "x"]), /--output is supported only with --format word/);
+  assert.throws(() => parseRunnerCliArguments(["draft-vehicle-script@1.0.0", "--input", "brief.yaml", "--format", "word", "--output", "x.docx"]), /only for presenter/);
   await assert.rejects(runWorkflowCli(["draft-vehicle-script@9.0.0", "--input", "missing.json"], {}), /not registered/);
   await assert.rejects(runWorkflowCli([
     "draft-vehicle-script@1.0.0",
@@ -46,7 +51,7 @@ test("finds the workflow registry when the runner is launched from its workspace
 });
 
 test("workflow templates and fictional output examples satisfy their registered schemas", async () => {
-  for (const workflowId of ["research-vehicle", "validate-vehicle-data", "draft-vehicle-script", "draft-presenter-script", "draft-promotional-script"]) {
+  for (const workflowId of ["research-vehicle", "validate-vehicle-data", "draft-vehicle-script"]) {
     const workflow = getRegisteredWorkflow(registry, workflowId, "1.0.0");
     const input = parse(await readFile(resolve(workflow.directory, "input.template.yaml"), "utf8")) as unknown;
     const output = await readJson(resolve(workflow.directory, "examples/fictional-output.json"));
@@ -55,40 +60,119 @@ test("workflow templates and fictional output examples satisfy their registered 
     assert.ok(workflow.prompt.length > 0, `${workflowId} prompt should not be empty`);
     await readFile(resolve(workflow.directory, "output.template.md"), "utf8");
   }
+  const promotional = getRegisteredWorkflow(registry, "draft-promotional-script", "1.2.0");
+  const promotionalTemplate = parse(await readFile(resolve(promotional.directory, "input.template.yaml"), "utf8")) as unknown;
+  assert.equal(promotional.validateInput(promotionalTemplate), true);
+  const presenter = getRegisteredWorkflow(registry, "draft-presenter-script", "1.1.0");
+  const presenterInput = parse(await readFile(resolve(presenter.directory, "input.template.yaml"), "utf8")) as unknown;
+  const presenterOutput = await readJson(resolve(presenter.directory, "examples/fictional-output.json"));
+  assert.equal(presenter.validateInput(presenterInput), true);
+  assert.equal(presenter.validateOutput(presenterOutput), true);
+  await readFile(resolve(presenter.directory, "output.template.md"), "utf8");
+  const promotionalInput = await readJson(resolve(promotional.directory, "examples/fictional-input.json"));
+  const promotionalOutput = await readJson(resolve(promotional.directory, "examples/fictional-output.json"));
+  assert.equal(promotional.validateInput(promotionalInput), true);
+  assert.equal(promotional.validateOutput(promotionalOutput), true);
+  await readFile(resolve(promotional.directory, "output.template.md"), "utf8");
 });
 
 test("promotional draft exposes missing offer details and requires explicit validity copy", async () => {
   const input = await readJson(resolve(workflowRoot, "draft-promotional-script/examples/fictional-input.json"));
   const output = await readJson(resolve(workflowRoot, "draft-promotional-script/examples/fictional-output.json"));
-  const result = await executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => output);
+  const result = await executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input }, async () => output);
   assert.deepEqual(result, output);
-  const missingValidity = structuredClone(output) as { validity_disclosure: { spoken_text: string }; placeholders: string[] };
-  missingValidity.validity_disclosure.spoken_text = "Consulta los detalles con la agencia.";
+  const generic = structuredClone(output) as { script: { scenes: Array<{ type: string; used_vehicle_fact_refs: string[]; source_refs: string[] }> } };
+  const vehicleScene = generic.script.scenes.find((scene) => scene.type === "detail")!;
+  vehicleScene.used_vehicle_fact_refs = [];
+  vehicleScene.source_refs = [];
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input }, async () => generic), /must use at least 2 source-linked vehicle research facts/);
+  const tooDetailed = structuredClone(output) as { script: { scenes: Array<{ type: string; used_vehicle_fact_refs: string[] }> } };
+  tooDetailed.script.scenes.find((scene) => scene.type === "detail")!.used_vehicle_fact_refs.push("candidate_fixture_004");
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input }, async () => tooDetailed), /no more than three vehicle research facts/);
+  const limitedResearchInput = structuredClone(input) as Record<string, any>;
+  limitedResearchInput.vehicle_research.candidate_facts = [limitedResearchInput.vehicle_research.candidate_facts[0]];
+  const limitedResearchOutput = structuredClone(output) as Record<string, any>;
+  const limitedVehicleScene = limitedResearchOutput.script.scenes.find((scene: Record<string, any>) => scene.type === "detail");
+  limitedVehicleScene.used_vehicle_fact_refs = ["candidate_fixture_001"];
+  limitedVehicleScene.spoken_text = "La ficha ficticia destaca una autonomía de prueba de 75 kilómetros; su exactitud todavía requiere revisión.";
+  limitedVehicleScene.on_screen_text = "Autonomía: 75 km";
+  limitedResearchOutput.warnings.push("La investigación contiene menos de dos datos utilizables.");
+  await executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input: limitedResearchInput }, async () => limitedResearchOutput);
+  const limitedModel = createPresenterDocumentModel("draft-promotional-script", limitedResearchInput, limitedResearchOutput);
+  assert.match(limitedModel.placeholderNote ?? "", /menos de dos datos utilizables/);
+  const missingValidity = structuredClone(output) as { script: { scenes: Array<{ id: string; type: string; spoken_text: string; on_screen_text: string | null }> }; placeholders: string[] };
+  const closing = missingValidity.script.scenes.find((scene) => scene.type === "closing")!;
+  closing.spoken_text = "Envíanos un mensaje para conocer más.";
+  closing.on_screen_text = "Escríbenos hoy.";
   missingValidity.placeholders = missingValidity.placeholders.filter((field) => field !== "VALIDITY");
-  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => missingValidity), /validity placeholder/);
-  const missingPromo = structuredClone(output) as { script: { promo_insert: { spoken_text: string } } };
-  missingPromo.script.promo_insert.spoken_text = "Pregunta por la oferta en la agencia.";
-  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => missingPromo), /in-script placeholder/);
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input }, async () => missingValidity), /spoken and on-screen validity placeholder/);
+  const missingPromo = structuredClone(output) as { script: { scenes: Array<{ type: string; spoken_text: string }> } };
+  missingPromo.script.scenes.find((scene) => scene.type === "promotion")!.spoken_text = "Tenemos opciones para ti.";
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input }, async () => missingPromo), /in-script placeholder/);
   let executorCalls = 0;
   const unconfirmed = structuredClone(input) as { offer_context: { status: string; confirmed_by: string | null } };
   unconfirmed.offer_context.status = "CONFIRMED";
   unconfirmed.offer_context.confirmed_by = null;
-  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.0.0", role: "presenter", input: unconfirmed }, async () => {
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input: unconfirmed }, async () => {
     executorCalls += 1;
     return output;
   }), /Invalid workflow input/);
   assert.equal(executorCalls, 0, "invalid confirmed offer metadata must be rejected before model execution");
 });
 
-test("presenter can request only a provisional script and output references remain source-linked", async () => {
-  const input = await readJson(resolve(workflowRoot, "draft-presenter-script/examples/fictional-input.json"));
-  const output = await readJson(resolve(workflowRoot, "draft-presenter-script/examples/fictional-output.json"));
-  const result = await executeRegisteredWorkflow(registry, { workflowId: "draft-presenter-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => output);
+test("presenter-provided offer values are usable while only missing fields receive placeholders", async () => {
+  const workflow = getRegisteredWorkflow(registry, "draft-promotional-script", "1.2.0");
+  const input = await readJson(resolve(workflow.directory, "examples/fictional-input.json")) as Record<string, any>;
+  input.offer_context.status = "PRESENTER_PROVIDED";
+  input.offer_context.financing_text = "$1,000 down and 5% APR";
+  const output = await readJson(resolve(workflow.directory, "examples/fictional-output.json")) as Record<string, any>;
+  const promotion = output.script.scenes.find((scene: Record<string, any>) => scene.type === "promotion");
+  promotion.spoken_text = "Para Honda usados certificados, hay una opción con $1,000 de enganche y 5% APR. El precio es [PRECIO POR CONFIRMAR], la promoción es [PROMOCIÓN POR CONFIRMAR] y la disponibilidad queda [DISPONIBILIDAD POR CONFIRMAR]. Las condiciones de crédito son [CONDICIONES DE CRÉDITO POR CONFIRMAR].";
+  promotion.used_offer_fields = ["financing_text"];
+  output.placeholders = ["PRICE", "PROMOTION", "AVAILABILITY", "ELIGIBILITY", "VALIDITY"];
+  const result = await executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input }, async () => output);
   assert.deepEqual(result, output);
+  const withUnneededMarker = structuredClone(output) as Record<string, any>;
+  withUnneededMarker.script.scenes.find((scene: Record<string, any>) => scene.type === "promotion").spoken_text += " [FINANCIAMIENTO POR CONFIRMAR]";
+  withUnneededMarker.placeholders.push("FINANCING");
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-promotional-script", workflowVersion: "1.2.0", role: "presenter", input }, async () => withUnneededMarker), /unneeded placeholder/);
+});
+
+test("presenter document renderer creates a Spanish four-column Word draft without technical labels", async () => {
+  const workflow = getRegisteredWorkflow(registry, "draft-promotional-script", "1.2.0");
+  const input = await readJson(resolve(workflow.directory, "examples/fictional-input.json"));
+  const output = await readJson(resolve(workflow.directory, "examples/fictional-output.json"));
+  const model = createPresenterDocumentModel("draft-promotional-script", input, output);
+  assert.deepEqual(model.scenes.map((scene) => scene.label), ["Una opción para empezar", "Tres detalles del vehículo", "Oferta y alternativas", "Siguiente paso"]);
+  assert.match(model.scenes[1]!.narration, /75 kilómetros/);
+  assert.match(model.scenes[1]!.narration, /400 litros/);
+  assert.equal(model.sources[0]?.title, "Fictional manufacturer vehicle specifications");
+  assert.match(model.scenes[2]!.narration, /\[PROMOCIÓN POR CONFIRMAR\]/);
+  assert.doesNotMatch(model.notice, /JSON|schema|workflow/);
+  const docx = await renderPresenterDocumentDocx(model);
+  assert.equal(docx.subarray(0, 2).toString("ascii"), "PK", "Word documents are ZIP-based OOXML files");
+  assert.ok(docx.length > 4_000, "rendered Word document should contain the presenter-facing table and content");
+});
+
+test("presenter scripts use multiple relevant research facts and keep their source links", async () => {
+  const workflow = getRegisteredWorkflow(registry, "draft-presenter-script", "1.1.0");
+  const input = await readJson(resolve(workflow.directory, "examples/fictional-input.json"));
+  const output = await readJson(resolve(workflow.directory, "examples/fictional-output.json"));
+  const result = await executeRegisteredWorkflow(registry, { workflowId: "draft-presenter-script", workflowVersion: "1.1.0", role: "presenter", input }, async () => output);
+  assert.deepEqual(result, output);
+  const presenterDocument = createPresenterDocumentModel("draft-presenter-script", input, output);
+  const detailNarration = presenterDocument.scenes.find((scene) => scene.label === "detail")?.narration ?? "";
+  assert.match(detailNarration, /ocho pulgadas/);
+  assert.match(detailNarration, /cuatrocientos litros/);
+  assert.equal(presenterDocument.sources[0]?.title, "Fictional manufacturer specification page");
   await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "research-vehicle", workflowVersion: "1.0.0", role: "presenter", input: {} }, async () => ({})), /presenter is not authorized/);
   const unsupported = structuredClone(output) as { script: { blocks: Array<{ source_refs: string[] }> } };
   unsupported.script.blocks[1]!.source_refs = [];
-  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-presenter-script", workflowVersion: "1.0.0", role: "presenter", input }, async () => unsupported), /candidate fact has no linked source/);
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-presenter-script", workflowVersion: "1.1.0", role: "presenter", input }, async () => unsupported), /candidate fact has no linked source/);
+  const generic = structuredClone(output) as { script: { blocks: Array<{ candidate_fact_refs: string[] }> }; candidate_fact_usage: Array<{ candidate_fact_id: string; used_in_blocks: string[] }> };
+  generic.script.blocks[1]!.candidate_fact_refs = ["candidate_fixture_001"];
+  generic.candidate_fact_usage = [{ candidate_fact_id: "candidate_fixture_001", used_in_blocks: ["detail"] }];
+  await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-presenter-script", workflowVersion: "1.1.0", role: "presenter", input }, async () => generic), /must use at least 2 source-linked research facts/);
 });
 
 test("research runner preserves unverified source-linked candidates and refuses unregistered execution", async () => {

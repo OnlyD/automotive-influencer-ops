@@ -133,6 +133,10 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
     }
     if (output.script.blocks.length > 0 && output.script.blocks.at(-1)?.target_range_seconds[1] !== output.script.target_duration_seconds) errors.push("last script block must end at target duration");
     if (clipCount > input.editorial_brief.target_clip_count) errors.push("script exceeds the approved clip candidate count");
+    const selectedFactCount = expectedUsage.size;
+    const minimumFactCount = Math.min(2, factIds.size);
+    if (selectedFactCount < minimumFactCount) errors.push(`detailed review must use at least ${minimumFactCount} source-linked research facts when available`);
+    if (selectedFactCount > 3) errors.push("detailed review should use no more than three research facts");
     if (output.sources_used.length !== usedSources.size || output.sources_used.some((sourceId: string) => !usedSources.has(sourceId))) errors.push("sources_used must match source references in script blocks");
     const actualUsage = new Map<string, Set<string>>();
     for (const usage of output.candidate_fact_usage as Array<{ candidate_fact_id: string; used_in_blocks: string[] }>) {
@@ -147,8 +151,12 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
     if (output.technical_review_required !== true || output.publishable !== false) errors.push("presenter script preview must require technical review and remain non-publishable");
   }
   if (workflowId === "draft-promotional-script") {
+    const vehicleResearch = input.vehicle_research as {
+      candidate_facts: Array<{ candidate_fact_id: string; source_ids: string[] }>;
+      sources: Array<{ source_id: string }>;
+    };
     const offer = input.offer_context as {
-      status: "NOT_PROVIDED" | "UNCONFIRMED" | "CONFIRMED";
+      status: "NOT_PROVIDED" | "PRESENTER_PROVIDED" | "UNCONFIRMED" | "CONFIRMED";
       price: unknown;
       promotion_text: string | null;
       availability_text: string | null;
@@ -160,49 +168,100 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
       source_ids: string[];
       sources: Array<{ source_id: string }>;
     };
+    const researchSourceIds = new Set(vehicleResearch.sources.map((source) => source.source_id));
+    const researchFactSources = new Map(vehicleResearch.candidate_facts.map((fact) => [fact.candidate_fact_id, new Set(fact.source_ids)]));
+    if (researchFactSources.size !== vehicleResearch.candidate_facts.length) errors.push("vehicle research candidate fact IDs must be unique");
+    for (const fact of vehicleResearch.candidate_facts) {
+      for (const sourceId of fact.source_ids) if (!researchSourceIds.has(sourceId)) errors.push(`vehicle research fact references unknown source: ${sourceId}`);
+    }
     const knownSourceIds = new Set(offer.sources.map((source) => source.source_id));
     const outputPlaceholders = new Set(output.placeholders as string[]);
-    const promoSpeech = output.script.promo_insert.spoken_text as string;
-    const validitySpeech = output.validity_disclosure.spoken_text as string;
+    const scenes = output.script.scenes as Array<{
+      id: string;
+      type: string;
+      target_range_seconds: [number, number];
+      spoken_text: string;
+      on_screen_text: string | null;
+      used_vehicle_fact_refs: string[];
+      used_offer_fields: string[];
+      source_refs: string[];
+    }>;
     const requiredPlaceholders: Array<[string, string, boolean]> = [
-      ["PRICE", "[PRECIO POR CONFIRMAR]", offer.status !== "CONFIRMED" || offer.price === null],
-      ["PROMOTION", "[PROMOCIÓN POR CONFIRMAR]", offer.status !== "CONFIRMED" || offer.promotion_text === null],
-      ["AVAILABILITY", "[DISPONIBILIDAD POR CONFIRMAR]", offer.status !== "CONFIRMED" || offer.availability_text === null],
-      ["FINANCING", "[FINANCIAMIENTO POR CONFIRMAR]", offer.status !== "CONFIRMED" || offer.financing_text === null],
-      ["ELIGIBILITY", "[CONDICIONES DE CRÉDITO POR CONFIRMAR]", offer.status !== "CONFIRMED" || offer.financing_text !== null && offer.eligibility_terms.length === 0],
+      ["PRICE", "[PRECIO POR CONFIRMAR]", offer.status === "NOT_PROVIDED" || offer.status === "UNCONFIRMED" || offer.price === null],
+      ["PROMOTION", "[PROMOCIÓN POR CONFIRMAR]", offer.status === "NOT_PROVIDED" || offer.status === "UNCONFIRMED" || offer.promotion_text === null],
+      ["AVAILABILITY", "[DISPONIBILIDAD POR CONFIRMAR]", offer.status === "NOT_PROVIDED" || offer.status === "UNCONFIRMED" || offer.availability_text === null],
+      ["FINANCING", "[FINANCIAMIENTO POR CONFIRMAR]", offer.status === "NOT_PROVIDED" || offer.status === "UNCONFIRMED" || offer.financing_text === null],
+      ["ELIGIBILITY", "[CONDICIONES DE CRÉDITO POR CONFIRMAR]", offer.status === "NOT_PROVIDED" || offer.status === "UNCONFIRMED" || offer.financing_text !== null && offer.eligibility_terms.length === 0],
     ];
     if (output.production_id !== input.production_id) errors.push("output production_id must match the input");
     if (output.script.target_duration_seconds !== input.editorial_brief.target_duration_seconds) errors.push("promotional script duration must match the brief");
     if (offer.status === "CONFIRMED" && (!offer.confirmed_by || !offer.confirmed_at || offer.source_ids.length === 0)) errors.push("confirmed commercial offer requires confirmer, timestamp, and source IDs");
     for (const sourceId of offer.source_ids) if (!knownSourceIds.has(sourceId)) errors.push(`offer references unknown source: ${sourceId}`);
+    const sceneIds = new Set<string>();
+    const usedVehicleFactIds = new Set<string>();
+    const usedOfferFields = new Set<string>();
+    const usedSourceIds = new Set<string>();
+    let previousEnd = 0;
+    for (const scene of scenes) {
+      const [start, end] = scene.target_range_seconds;
+      if (sceneIds.has(scene.id)) errors.push(`duplicate promotional scene ID: ${scene.id}`);
+      sceneIds.add(scene.id);
+      if (start >= end || start < previousEnd || end > output.script.target_duration_seconds) errors.push(`invalid or overlapping timing range for scene ${scene.id}`);
+      previousEnd = end;
+      for (const factId of scene.used_vehicle_fact_refs) {
+        const factSources = researchFactSources.get(factId);
+        if (!factSources) errors.push(`promotional scene references unknown vehicle research fact: ${factId}`);
+        else {
+          usedVehicleFactIds.add(factId);
+          if (!scene.source_refs.some((sourceId) => factSources.has(sourceId))) errors.push(`promotional vehicle fact has no linked source in scene ${scene.id}: ${factId}`);
+        }
+      }
+      for (const field of scene.used_offer_fields) usedOfferFields.add(field);
+      for (const sourceId of scene.source_refs) {
+        if (!offer.source_ids.includes(sourceId) && !researchSourceIds.has(sourceId)) errors.push(`promotional scene references an unknown source: ${sourceId}`);
+        usedSourceIds.add(sourceId);
+      }
+    }
+    if (scenes[0]?.target_range_seconds[0] !== 0) errors.push("first promotional scene must start at 0 seconds");
+    if (scenes.at(-1)?.target_range_seconds[1] !== output.script.target_duration_seconds) errors.push("last promotional scene must end at target duration");
+    if (!scenes.some((scene) => scene.type === "opening") || !scenes.some((scene) => scene.type === "promotion") || !scenes.some((scene) => scene.type === "closing")) errors.push("promotional script needs opening, promotion, and closing scenes");
+    const minimumVehicleFacts = Math.min(2, vehicleResearch.candidate_facts.length);
+    if (usedVehicleFactIds.size < minimumVehicleFacts) errors.push(`promotional script must use at least ${minimumVehicleFacts} source-linked vehicle research facts when available`);
+    if (usedVehicleFactIds.size > 3) errors.push("promotional script should use no more than three vehicle research facts");
+    const spokenWords = scenes.flatMap((scene) => scene.spoken_text.match(/[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu) ?? []).length;
+    const estimatedSpeechSeconds = spokenWords * 60 / 120;
+    if (estimatedSpeechSeconds < output.script.target_duration_seconds * 0.7 || estimatedSpeechSeconds > output.script.target_duration_seconds * 1.2) errors.push("spoken narration length is inconsistent with the target duration");
     const fieldAvailable: Record<string, boolean> = {
-      price: offer.status === "CONFIRMED" && offer.price !== null,
-      promotion_text: offer.status === "CONFIRMED" && offer.promotion_text !== null,
-      availability_text: offer.status === "CONFIRMED" && offer.availability_text !== null,
-      financing_text: offer.status === "CONFIRMED" && offer.financing_text !== null,
-      eligibility_terms: offer.status === "CONFIRMED" && offer.financing_text !== null && offer.eligibility_terms.length > 0,
+      price: ["CONFIRMED", "PRESENTER_PROVIDED"].includes(offer.status) && offer.price !== null,
+      promotion_text: ["CONFIRMED", "PRESENTER_PROVIDED"].includes(offer.status) && offer.promotion_text !== null,
+      availability_text: ["CONFIRMED", "PRESENTER_PROVIDED"].includes(offer.status) && offer.availability_text !== null,
+      financing_text: ["CONFIRMED", "PRESENTER_PROVIDED"].includes(offer.status) && offer.financing_text !== null,
+      eligibility_terms: ["CONFIRMED", "PRESENTER_PROVIDED"].includes(offer.status) && offer.financing_text !== null && offer.eligibility_terms.length > 0,
     };
-    for (const field of output.script.promo_insert.used_offer_fields as string[]) {
+    for (const field of usedOfferFields) {
       if (!fieldAvailable[field]) errors.push(`promotional script uses a missing or unconfirmed offer field: ${field}`);
     }
-    for (const sourceId of output.script.promo_insert.source_refs as string[]) {
-      if (!offer.source_ids.includes(sourceId)) errors.push(`promotional script references an unapproved offer source: ${sourceId}`);
-    }
-    if (output.script.promo_insert.used_offer_fields.length > 0 && output.script.promo_insert.source_refs.length === 0) errors.push("commercial claims require source references");
+    if (offer.status === "CONFIRMED" && usedOfferFields.size > 0 && usedSourceIds.size === 0) errors.push("confirmed commercial claims require source references");
+    const promotionSpeech = scenes.filter((scene) => scene.type === "promotion").map((scene) => scene.spoken_text).join(" ");
     for (const [placeholder, token, required] of requiredPlaceholders) {
       if (required && !outputPlaceholders.has(placeholder)) errors.push(`missing required placeholder declaration: ${placeholder}`);
-      if (required && !promoSpeech.includes(token)) errors.push(`missing required in-script placeholder: ${token}`);
+      if (required && !promotionSpeech.includes(token)) errors.push(`missing required in-script placeholder: ${token}`);
+      if (!required && outputPlaceholders.has(placeholder)) errors.push(`unneeded placeholder declaration for available offer data: ${placeholder}`);
     }
-    const validity = output.validity_disclosure as { status: string; spoken_text: string; on_screen_text: string; valid_until: string | null };
-    if (offer.status === "CONFIRMED" && offer.valid_until) {
-      if (validity.status !== "CONFIRMED_UNTIL" || validity.valid_until !== offer.valid_until) errors.push("validity disclosure must match the confirmed offer end date");
-      const endDate = offer.valid_until.slice(0, 10);
-      if (!validity.spoken_text.includes(endDate) || !validity.on_screen_text.includes(endDate)) errors.push("confirmed validity date must appear in spoken and on-screen copy");
-      if (outputPlaceholders.has("VALIDITY")) errors.push("do not leave the validity placeholder when the offer end date is confirmed");
+    const validity = output.validity_disclosure as { status: string; valid_until: string | null; scene_id: string };
+    const validityScene = scenes.find((scene) => scene.id === validity.scene_id);
+    if (!validityScene || validityScene.type !== "closing") errors.push("validity disclosure must be included in the closing scene");
+    if (["CONFIRMED", "PRESENTER_PROVIDED"].includes(offer.status) && offer.valid_until) {
+      const expectedStatus = offer.status === "CONFIRMED" ? "CONFIRMED_UNTIL" : "PRESENTER_PROVIDED_UNTIL";
+      if (validity.status !== expectedStatus || validity.valid_until !== offer.valid_until) errors.push("validity disclosure must match the provided offer end date");
+      const date = new Date(offer.valid_until);
+      const spokenDate = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(date);
+      if (!validityScene?.spoken_text.toLocaleLowerCase("es-MX").includes(spokenDate.toLocaleLowerCase("es-MX"))) errors.push("offer end date must appear in spoken closing copy");
+      if (!validityScene?.on_screen_text?.toLocaleLowerCase("es-MX").includes(spokenDate.toLocaleLowerCase("es-MX"))) errors.push("offer end date must appear in on-screen closing copy");
+      if (outputPlaceholders.has("VALIDITY")) errors.push("do not leave the validity placeholder when an end date is provided");
     } else {
-      const expectedStatus = offer.status === "CONFIRMED" ? "CONFIRMED_NO_END_DATE" : "PENDING";
-      if (validity.status !== expectedStatus || validity.valid_until !== null) errors.push(`validity disclosure status must be ${expectedStatus}`);
-      if (!outputPlaceholders.has("VALIDITY") || !validity.spoken_text.includes("[VIGENCIA POR CONFIRMAR]")) errors.push("missing required in-script validity placeholder");
+      if (validity.status !== "PENDING" || validity.valid_until !== null) errors.push("missing or unconfirmed offer validity must remain pending");
+      if (!outputPlaceholders.has("VALIDITY") || !validityScene?.spoken_text.includes("[VIGENCIA POR CONFIRMAR]") || !validityScene.on_screen_text?.includes("[VIGENCIA POR CONFIRMAR]")) errors.push("missing spoken and on-screen validity placeholder");
     }
     if (output.commercial_review_required !== true || output.publishable !== false) errors.push("promotional script must require commercial review and remain non-publishable");
   }

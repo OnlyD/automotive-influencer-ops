@@ -49,8 +49,8 @@ const approvedWorkflows = [
   { id: "research-vehicle", version: "1.0.0" },
   { id: "validate-vehicle-data", version: "1.0.0" },
   { id: "draft-vehicle-script", version: "1.0.0" },
-  { id: "draft-presenter-script", version: "1.0.0" },
-  { id: "draft-promotional-script", version: "1.0.0" },
+  { id: "draft-presenter-script", version: "1.1.0" },
+  { id: "draft-promotional-script", version: "1.2.0" },
 ] as const;
 
 function isManifest(value: unknown, expectedId: string, expectedVersion: string): value is WorkflowManifest {

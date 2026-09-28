@@ -1,25 +1,28 @@
 ---
 name: generar-guion-promocional
-description: Crea un borrador promocional en español con datos comerciales confirmados o marcadores visibles para los datos faltantes. No investiga promociones ni presenta borradores como publicables.
+description: Crea un borrador promocional en español con dos o tres datos atractivos del vehículo investigado y condiciones comerciales confirmadas o marcadores para datos faltantes. No investiga el vehículo ni las promociones, ni presenta borradores como publicables.
 ---
 
 # Generar un guion promocional
 
-Responde siempre en español. Esta skill prepara una pieza enfocada en atraer clientes con información comercial de una agencia. Es distinta de la investigación del vehículo y del guion detallado: no busca, confirma ni completa precios, promociones, disponibilidad, financiamiento o vigencia.
+Responde y entrega todo en español. Esta skill crea un borrador de venta a partir de una investigación previa del vehículo, la información comercial que la influencer recibió y, si existen, fotos o videos sin audio. No investiga el vehículo ni la oferta. La información promocional puede faltar sin detener la preparación del borrador.
 
-## Preparar y generar
+## Preparar el borrador
 
-1. Lee `workflows/ai/draft-promotional-script/manifest.yaml`, `input.schema.json`, `prompt.md` y `output.schema.json` del checkout actualizado. Si no están disponibles, indica que el operador debe actualizar el proyecto; no inventes un contrato.
-2. Reúne la identidad exacta del vehículo y el objetivo editorial. Si la identidad falta, solicita el paquete de investigación del vehículo o pide únicamente el dato faltante.
-3. Acepta datos de precio, promoción, disponibilidad y financiamiento que el usuario proporcione, pero trátalos como `UNCONFIRMED` salvo que vengan en un paquete del operador con responsable, fecha/hora de confirmación, fuente y condiciones. No busques ni infieras los términos.
-4. Si un dato comercial falta o no está confirmado, no detengas el borrador: deja su marcador directamente en el bloque promocional. Incluye `[PRECIO POR CONFIRMAR]`, `[PROMOCIÓN POR CONFIRMAR]`, `[DISPONIBILIDAD POR CONFIRMAR]`, `[FINANCIAMIENTO POR CONFIRMAR]` y `[CONDICIONES DE CRÉDITO POR CONFIRMAR]` cuando aplique.
-5. Incluye siempre una declaración de vigencia dentro del guion. Si hay fecha final confirmada, exprésala exactamente. Si no la hay, usa `[VIGENCIA POR CONFIRMAR]`; nunca sugieras que una oferta sigue activa ni inventes una fecha de expiración.
-6. Construye el input en memoria y sigue `draft-promotional-script@1.0.0`. Valida la salida contra su schema, incluyendo placeholders requeridos, referencias de fuente y la declaración de vigencia. No guardes inputs, ofertas o borradores en el repositorio o inventario.
+1. Usa internamente `draft-promotional-script@1.2.0` y valida el resultado con el contrato vigente. El JSON, los schemas, los IDs internos y los mensajes técnicos son datos de trabajo: **nunca los muestres, adjuntes ni expliques a la influencer**.
+2. Confirma que el operador técnico haya proporcionado una investigación con hechos candidatos y fuentes identificables para la unidad exacta. Si no existe, explica en español que primero hace falta investigar el vehículo y detente; no busques ni completes especificaciones.
+3. Selecciona solo dos o tres datos atractivos y relevantes de esa investigación para la audiencia y el ángulo promocional. No resumas toda la investigación ni conviertas el guion en una ficha técnica. Mantén cada dato ligado a su fuente y descríbelo como pendiente de revisión. Si la investigación contiene menos de dos datos utilizables, aprovecha los respaldados y advierte brevemente que hace falta más contexto.
+4. Acepta el resumen comercial de la influencer en lenguaje natural como input separado. Usa los términos que ella indique como proporcionados por ella para el borrador, sin pedir URL, paquete del operador, nombre del dealer ni fecha de confirmación como requisito previo. No declares que tú verificaste esos términos.
+5. Deja un marcador solo donde realmente falte información o la influencer diga que es incierta: `[PRECIO POR CONFIRMAR]`, `[PROMOCIÓN POR CONFIRMAR]`, `[DISPONIBILIDAD POR CONFIRMAR]`, `[FINANCIAMIENTO POR CONFIRMAR]` o `[CONDICIONES DE CRÉDITO POR CONFIRMAR]`. Conserva los términos que ella sí proporcionó sin ponerles un marcador.
+6. Incluye la vigencia dentro de la última escena. Si se proporciona fecha final, úsala tal como se indicó. Si no, incluye `[VIGENCIA POR CONFIRMAR]` en la voz en off y en el texto en pantalla. No inventes fechas ni disponibilidad.
+7. Si no se especifica duración, usa una duración breve apropiada para la solicitud y calcula los tiempos según la extensión hablada. Si la influencer pide ampliar, desarrolla la voz en off; mantén las indicaciones visuales cortas.
+8. Crea escenas con timing, visual conciso, voz en off completa y texto en pantalla breve. Usa un tono mexicano natural, alegre y conversacional; evita repetir “pregunta en la agencia”. Presenta los beneficios proporcionados directamente. Cierra con una llamada a la acción concreta, sin prometer aprobación o entrega garantizadas.
+9. Usa fotografías y clips enviados como referencias visuales. Si están sin audio, propone una voz en off que pueda acompañarlos; no digas que los medios ya fueron editados.
 
-## Presentar el borrador
+## Entrega
 
-- Entrega el guion en español, enfocado en la oferta y fácil de completar el mismo día en la agencia.
-- Mantén los placeholders visibles donde falten datos; no los ocultes en notas aparte.
-- Si el financiamiento depende del historial o aprobación de crédito, no lo presentes como disponible para todos. Incluye exactamente las condiciones confirmadas o deja `[CONDICIONES DE CRÉDITO POR CONFIRMAR]`.
-- Identifica el resultado como borrador no publicable hasta revisión comercial. Todo precio, promoción, disponibilidad, financiamiento, condición y vigencia requiere confirmación antes de grabar/publicar.
-- Puedes hacer ajustes creativos sin alterar datos confirmados, fechas, condiciones, referencias o placeholders pendientes.
+- Genera un documento Word en español con el formato aprobado de cuatro columnas: **Tiempo / escena**, **Visual breve**, **Voz en off** y **Texto en pantalla**. No agregues una batería de preguntas al dealer, anexos técnicos, JSON, schemas, advertencias por cada línea ni notas internas.
+- Coloca un único aviso discreto de borrador/revisión. Si hay marcadores, agrega una sola nota breve indicando que deben sustituirse antes de grabar; no deben leerse literalmente.
+- Entrega el enlace al Word y, en el chat, una explicación breve en español. Nunca devuelvas el objeto de workflow ni el JSON crudo.
+- No guardes datos comerciales ni material real en Git o en el inventario. Conserva el Word como archivo de trabajo local. El borrador no publica contenido.
+- Si no se puede generar el Word, entrega el guion con las cuatro columnas en una tabla legible en el chat; no pidas a la influencer que use una terminal o interprete una falla técnica.

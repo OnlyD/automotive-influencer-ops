@@ -1,21 +1,11 @@
-# Promotional script draft
+# Promotional script draft — human presentation
 
-> Draft only. Commercial review required. Do not publish while placeholders remain.
+Render the validated internal result as a Spanish Word document. Do not show the structured JSON, schema names, workflow IDs, or validation warnings to the presenter.
 
-- Workflow: `draft-promotional-script@1.0.0`
-- Commercial review required: yes
-- Publishable: no
+The document uses one production table with four columns:
 
-## Script
+| Time / scene | Short visual direction | Spoken narration | On-screen text |
+| --- | --- | --- | --- |
+| `<range> / <scene label>` | `<one concise visual sentence>` | `<natural Spanish narration>` | `<short Spanish copy or —>` |
 
-**Opening:** `<Spanish opening>`
-
-**Promotion insert:** `<Spanish spoken copy with unavailable fields shown as placeholders>`
-
-**Validity disclosure:** `<Spanish spoken and on-screen validity statement>`
-
-**Closing:** `<Spanish call to action>`
-
-## Placeholders and sources
-
-List each unavailable or unconfirmed offer field and cite sources for confirmed claims.
+Include a discreet draft/review notice. Keep missing-term placeholders inline at their point of mention. Add a single note that bracketed placeholders must be replaced before recording. Do not append internal validation data, schema fields, source IDs, JSON, or a dealer-question checklist. If source details exist, list only readable source titles/links in an optional short “Fuentes” section.
