@@ -8,5 +8,5 @@
     { "candidate_fact_id": "candidate_fixture_003", "label": "Fictional cargo capacity", "value": 400, "unit": "fixture_liters", "source_ids": ["src_fixture_001"], "verification_status": "CANDIDATE" }
   ],
   "editorial_brief": { "audience": "Spanish-speaking vehicle shoppers", "angle": "Explain one useful attribute", "tone": "Clear and natural", "target_duration_seconds": 30, "target_clip_count": 1 },
-  "constraints": { "language": "es", "format": "vertical_video", "prohibited_claims": [] }
+  "constraints": { "language": "es", "format": "vertical_video", "prohibited_claims": [], "contact_method": null }
 }

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://automotive-influencer-ops.local/workflows/draft-promotional-script/1.2.0/input.schema.json",
+  "$id": "https://automotive-influencer-ops.local/workflows/draft-promotional-script/1.3.0/input.schema.json",
   "type": "object", "additionalProperties": false,
-  "required": ["production_id", "vehicle", "vehicle_research", "editorial_brief", "offer_context"],
+  "required": ["production_id", "vehicle", "vehicle_research", "editorial_brief", "offer_context", "closing_cta"],
   "properties": {
     "production_id": { "type": "string", "pattern": "^prd_[a-zA-Z0-9_-]+$" },
     "vehicle": { "type": "object", "additionalProperties": false, "required": ["vehicle_id", "year", "make", "model", "trim", "market"], "properties": {
@@ -40,6 +40,7 @@
     "editorial_brief": { "type": "object", "additionalProperties": false, "required": ["audience", "angle", "tone", "target_duration_seconds"], "properties": {
       "audience": { "type": "string", "minLength": 1 }, "angle": { "type": "string", "minLength": 1 }, "tone": { "type": "string", "minLength": 1 }, "target_duration_seconds": { "type": "integer", "minimum": 15, "maximum": 300 }
     } },
+    "closing_cta": { "type": "object", "additionalProperties": false, "required": ["contact_method"], "properties": { "contact_method": { "type": ["string", "null"], "minLength": 1 } } },
     "offer_context": { "type": "object", "additionalProperties": false, "required": ["status", "price", "promotion_text", "availability_text", "financing_text", "eligibility_terms", "confirmed_by", "confirmed_at", "valid_from", "valid_until", "source_ids", "sources"], "properties": {
       "status": { "enum": ["NOT_PROVIDED", "PRESENTER_PROVIDED", "UNCONFIRMED", "CONFIRMED"] },
       "price": { "oneOf": [ { "type": "null" }, { "type": "object", "additionalProperties": false, "required": ["amount", "currency"], "properties": { "amount": { "type": "number", "minimum": 0 }, "currency": { "type": "string", "pattern": "^[A-Z]{3}$" } } } ] },

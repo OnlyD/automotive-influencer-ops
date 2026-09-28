@@ -2,7 +2,7 @@
 
 **Estado:** ejecución autorizada; bootstrap e implementación incremental en curso  
 **Fecha de consolidación:** 27 de septiembre de 2026  
-**Versión de la especificación:** 2.6.0
+**Versión de la especificación:** 2.7.0
 **Nombre lógico del repositorio:** `automotive-content-ops`  
 **Responsable técnico y autoridad de integración:** operador técnico del proyecto  
 **Audiencia principal:** agente Codex que continuará la implementación, operador técnico y futuros mantenedores  
@@ -36,6 +36,7 @@ El acuerdo operativo del proyecto conserva las decisiones de colaboración y pro
 | 2.4.0 | 27-sep-2026 | Define documentos Word de cuatro columnas para la presentadora, conserva JSON como formato interno, permite usar condiciones aportadas por ella sin presentarlas como confirmadas, y elimina la skill genérica duplicada del operador. |
 | 2.5.0 | 27-sep-2026 | Requiere integrar dos o tres datos de investigación relevantes en la reseña detallada de la presentadora cuando el paquete tenga información suficiente. |
 | 2.6.0 | 27-sep-2026 | Requiere que el guion promocional consuma investigación separada y use solo dos o tres datos atractivos y pertinentes de la unidad. |
+| 2.7.0 | 27-sep-2026 | Defines the presenter's same-conversation flow: research first, then choose a promotional or detailed script; both scripts include contact and follow/like/comment calls to action. |
 
 ### Punto de reanudación obligatorio en Codex
 
@@ -471,12 +472,17 @@ delegation:
 
 ## 13. Skills y experiencia de la presentadora
 
-La presentadora utilizará principalmente:
+The presenter's standard sequence is:
 
-- `$generar-guion` para convertir un paquete de investigación del operador en un borrador Word no oficial que incorpora dos o tres hechos relevantes con sus fuentes; no busca ni completa hechos.
+- `$actualizar-influencer` to refresh tools and establish the Spanish presenter context.
+- `$investigar-vehiculo` to research the vehicle in the same conversation and retain a source-linked candidate bundle; it does not verify facts or draft scripts.
+- `$generar-guion-promocional` as the priority path to prepare a sales-focused Word draft with two or three attractive facts, prior research, and separate commercial terms.
+- `$generar-guion` to turn the same research into a non-official detailed review with two or three relevant facts and their sources.
 - `$adaptar-guion`
 - `$preparar-grabacion`
 - `$entregar-material`
+
+Both script skills include a spoken contact call to action and a separate invitation to follow the account, like, and comment. They may use only a contact method or account handle that was supplied; if the contact method is missing, they retain `[MEDIO DE CONTACTO POR CONFIRMAR]`. They never invent phone numbers, handles, links, or dealership contacts. Research and script writing remain separate responsibilities but do not require separate conversations or a manual handoff.
 
 Una solicitud como:
 
@@ -1254,25 +1260,34 @@ El paquete es específico por plataforma. No se copia ciegamente el mismo captio
 
 ### 36.1 Skills iniciales de la presentadora
 
+#### `$investigar-vehiculo`
+
+- Research the year, make, model, and market in the presenter's conversation; ask for trim when a claim depends on it.
+- Use retrieved and opened sources, prioritizing the manufacturer and official agencies. Retain IDs, URLs, and retrieval dates internally so a later script can link its claims to sources.
+- Present a readable Spanish summary with source names, links, and applicability limits; do not present JSON or schemas.
+- Keep all results as unverified candidates. Do not modify inventory or write script copy.
+
 #### `$generar-guion`
 
-- Exige un paquete de investigación producido por `$investigar-vehiculo`, con identidad exacta, hechos candidatos y fuentes identificables.
+- Consume the source-linked candidate bundle from `$investigar-vehiculo` in the current conversation; no operator handoff or separate chat is required.
 - Convierte ese paquete en una vista previa mediante `draft-presenter-script`; no realiza investigación ni completa hechos faltantes.
 - Selecciona dos o tres hechos pertinentes para la audiencia y el ángulo editorial, sin convertir el guion en una ficha técnica; si la investigación tiene menos de dos hechos utilizables, advierte que hace falta contexto.
-- Si falta el paquete o la identidad exacta, indica que el operador debe completar `$investigar-vehiculo` y detiene la generación.
+- If the bundle or exact identity is missing, direct the presenter to use `$investigar-vehiculo` in the same conversation first, then stop generation.
 - Devuelve un documento Word en español con una tabla de cuatro columnas: tiempo/escena, guía visual breve, narración hablada y texto en pantalla. Las fuentes se presentan con nombres legibles, sin IDs internos.
 - El JSON y los schemas son internos y no se muestran como respuesta a la presentadora.
-- No guarda el input o el output, modifica inventario, verifica hechos, incluye claims comerciales ni oficializa artefactos.
+- The final narration invites viewers to get in touch using the supplied method or `[MEDIO DE CONTACTO POR CONFIRMAR]`, and also to follow the account, like, and comment.
+- Does not save input or output, modify inventory, verify facts, include commercial claims beyond the required closing CTA, or officialize artifacts.
 - Exige revisión factual del operador y mantiene `publishable: false`.
 
 #### `$generar-guion-promocional`
 
-- Produce un borrador de venta separado del guion detallado y consume una investigación técnica previa de la unidad exacta.
+- Produces a sales draft separate from the detailed review and consumes prior research for the exact vehicle available in the same conversation.
 - Selecciona solo dos o tres hechos atractivos y relevantes de la investigación para la audiencia y el ángulo promocional; no resume el paquete completo ni investiga hechos adicionales.
 - No investiga ni confirma precios, promociones, disponibilidad, financiamiento, condiciones o vigencia. Puede usar literalmente información que la presentadora proporcione, con estado no verificado, para preparar el borrador.
 - Coloca marcadores visibles en el texto hablado solo para campos faltantes o que la presentadora señale como inciertos. La vigencia se menciona en el cierre; cuando falte, usa `[VIGENCIA POR CONFIRMAR]` tanto en narración como en texto en pantalla.
 - Conserva importes, fechas, condiciones y referencias de fuentes confirmadas sin alterarlos.
 - Entrega un documento Word con las mismas cuatro columnas que la skill de reseñas detalladas. No muestra JSON, schemas, IDs de workflows, preguntas para la agencia ni anexos técnicos. Incluye una sola nota breve si quedan campos por confirmar.
+- The final narration invites viewers to get in touch using the supplied method or `[MEDIO DE CONTACTO POR CONFIRMAR]`, and also to follow the account, like, and comment.
 - Requiere revisión comercial antes de grabar o publicar; siempre mantiene `publishable: false`.
 - No persiste la oferta ni el borrador desde la skill.
 
@@ -1665,8 +1680,9 @@ Entregables:
 
 Entregables:
 
-- `$investigar-vehiculo` del operador para preparar el paquete investigado y su handoff en español.
-- `$generar-guion` de la presentadora para convertir únicamente ese paquete en una vista previa no oficial, con revisión factual obligatoria.
+- Presenter-facing `$investigar-vehiculo` to research in her conversation and return a readable Spanish summary; the operator retains a separate technical skill.
+- Priority `$generar-guion-promocional` and `$generar-guion` to turn research from that conversation into a non-official Word draft, with required factual or commercial review.
+- Include contact and engagement calls to action in both script types without inventing destinations or account handles.
 - `$adaptar-guion`, `$preparar-grabacion` y `$entregar-material`.
 - Manejo de preguntas faltantes.
 - Diffs y protección de campos bloqueados.
@@ -1742,6 +1758,8 @@ Una fase no termina porque exista código. Requiere:
 - La automatización y publicación se introducen progresivamente con aprobación humana.
 - La arquitectura objetivo es híbrida: skills, ejecución local controlada y persistencia serverless en AWS.
 - El presupuesto mensual máximo conciliado para herramientas, IA e infraestructura es USD 120/mes, salvo aprobación posterior.
+- The presenter's standard flow stays in one conversation: refresh tools, research the vehicle, then choose a promotional script (priority) or detailed review.
+- Every promotional or detailed script closes with contact and follow/like/comment calls to action. An unsupplied contact method uses `[MEDIO DE CONTACTO POR CONFIRMAR]`; phone numbers, handles, and links are never invented.
 
 ### 50.2 Pendiente y no inferible
 
@@ -1750,7 +1768,7 @@ Una fase no termina porque exista código. Requiere:
 - Proveedor de programación social.
 - Política de retención.
 - Identidad técnica de la presentadora.
-- CTA, recepción y tratamiento de contactos.
+- The actual contact method and contact intake process. Every script must include contact and social calls to action.
 - Primer vehículo o dataset del piloto.
 - Cuentas sociales y permisos disponibles.
 - Música o proveedor de licencias.

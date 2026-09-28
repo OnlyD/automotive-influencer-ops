@@ -2,6 +2,22 @@ import { getRegisteredWorkflow, type RegisteredWorkflow } from "./workflow-regis
 
 export type WorkflowExecutor = (request: { workflowId: string; workflowVersion: string; prompt: string; input: unknown; outputSchemaPath: string }) => Promise<unknown>;
 
+function validatePresenterClosingCta(
+  contactMethod: string | null,
+  cta: { contact_text: string; engagement_text: string },
+  errors: string[],
+): void {
+  const contactText = cta.contact_text.toLocaleLowerCase("es-MX");
+  const contactAction = /contacta|contáctame|contáctanos|escríbeme|escríbenos|llámame|llámanos|manda(?:me|nos) un mensaje/i.test(contactText);
+  if (!contactAction) errors.push("closing CTA must invite viewers to get in touch");
+  if (contactMethod && !cta.contact_text.includes(contactMethod)) errors.push("closing CTA must use the supplied contact method exactly");
+  if (!contactMethod && !cta.contact_text.includes("[MEDIO DE CONTACTO POR CONFIRMAR]")) errors.push("closing CTA must use a contact placeholder when no contact method was supplied");
+  const engagementText = cta.engagement_text.toLocaleLowerCase("es-MX");
+  if (!/sígueme|síguenos|sigue la cuenta|seguir/.test(engagementText)) errors.push("closing CTA must invite viewers to follow the account");
+  if (!/me gusta|like/.test(engagementText)) errors.push("closing CTA must invite viewers to like the video");
+  if (!/comenta|comentario|cuéntame en los comentarios/.test(engagementText)) errors.push("closing CTA must invite viewers to comment");
+}
+
 function assertWorkflowSemantics(workflowId: string, input: Record<string, any>, output: Record<string, any>): void {
   const errors: string[] = [];
   if (workflowId === "research-vehicle") {
@@ -104,6 +120,7 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
     const expectedUsage = new Map<string, Set<string>>();
     if (output.production_id !== input.production_id) errors.push("output production_id must match the input");
     if (output.script.target_duration_seconds !== input.editorial_brief.target_duration_seconds) errors.push("script duration must match the brief");
+    validatePresenterClosingCta(input.constraints.contact_method, output.script.closing_cta, errors);
     let previousEnd = 0;
     let clipCount = 0;
     const usedSources = new Set<string>();
@@ -194,6 +211,7 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
       ["ELIGIBILITY", "[CONDICIONES DE CRÉDITO POR CONFIRMAR]", offer.status === "NOT_PROVIDED" || offer.status === "UNCONFIRMED" || offer.financing_text !== null && offer.eligibility_terms.length === 0],
     ];
     if (output.production_id !== input.production_id) errors.push("output production_id must match the input");
+    validatePresenterClosingCta(input.closing_cta.contact_method, output.script.closing_cta, errors);
     if (output.script.target_duration_seconds !== input.editorial_brief.target_duration_seconds) errors.push("promotional script duration must match the brief");
     if (offer.status === "CONFIRMED" && (!offer.confirmed_by || !offer.confirmed_at || offer.source_ids.length === 0)) errors.push("confirmed commercial offer requires confirmer, timestamp, and source IDs");
     for (const sourceId of offer.source_ids) if (!knownSourceIds.has(sourceId)) errors.push(`offer references unknown source: ${sourceId}`);
@@ -228,7 +246,12 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
     const minimumVehicleFacts = Math.min(2, vehicleResearch.candidate_facts.length);
     if (usedVehicleFactIds.size < minimumVehicleFacts) errors.push(`promotional script must use at least ${minimumVehicleFacts} source-linked vehicle research facts when available`);
     if (usedVehicleFactIds.size > 3) errors.push("promotional script should use no more than three vehicle research facts");
-    const spokenWords = scenes.flatMap((scene) => scene.spoken_text.match(/[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu) ?? []).length;
+    const closingCta = output.script.closing_cta as { contact_text: string; engagement_text: string };
+    const spokenWords = [
+      ...scenes.flatMap((scene) => scene.spoken_text.match(/[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu) ?? []),
+      ...(closingCta.contact_text.match(/[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu) ?? []),
+      ...(closingCta.engagement_text.match(/[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu) ?? []),
+    ].length;
     const estimatedSpeechSeconds = spokenWords * 60 / 120;
     if (estimatedSpeechSeconds < output.script.target_duration_seconds * 0.7 || estimatedSpeechSeconds > output.script.target_duration_seconds * 1.2) errors.push("spoken narration length is inconsistent with the target duration");
     const fieldAvailable: Record<string, boolean> = {

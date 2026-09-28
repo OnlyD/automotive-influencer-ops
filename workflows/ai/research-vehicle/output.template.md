@@ -1,6 +1,6 @@
 # Research bundle
 
-- Workflow: `research-vehicle@1.0.0`
+- Workflow: `research-vehicle@1.1.0`
 - Vehicle: `veh_example`
 - Candidate facts: list each candidate with its exact field, value, scope, and source IDs. Candidate facts are unverified.
 - Sources: preserve source ID, title, publisher, URL, retrieval time, locale, and reliability tier.

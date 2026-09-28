@@ -1,6 +1,6 @@
 {
   "production_id": "prd_example",
-  "workflow": { "id": "draft-promotional-script", "version": "1.2.0" },
+  "workflow": { "id": "draft-promotional-script", "version": "1.3.0" },
   "script": {
     "title": "Conoce esta opción de Honda",
     "target_duration_seconds": 60,
@@ -8,8 +8,9 @@
       { "id": "opening", "type": "opening", "target_range_seconds": [0, 8], "label": "Una opción para empezar", "visual_direction": "Toma del vehículo; presentadora entra a cuadro.", "spoken_text": "¿Estás buscando tu primer Honda? Hoy te contamos algunos detalles de esta unidad y las opciones disponibles para dar el siguiente paso.", "on_screen_text": "Conoce esta unidad", "used_vehicle_fact_refs": [], "used_offer_fields": [], "source_refs": [] },
       { "id": "vehicle-highlights", "type": "detail", "target_range_seconds": [8, 24], "label": "Tres detalles del vehículo", "visual_direction": "Muestra el tablero y el área de carga.", "spoken_text": "La ficha ficticia destaca una autonomía de prueba de 75 kilómetros, una pantalla de 8 pulgadas y 400 litros de capacidad de carga. Son tres datos para conocer mejor esta unidad; su exactitud requiere revisión.", "on_screen_text": "Autonomía: 75 km · Pantalla: 8 pulgadas · Carga: 400 L", "used_vehicle_fact_refs": ["candidate_fixture_001", "candidate_fixture_002", "candidate_fixture_003"], "used_offer_fields": [], "source_refs": ["src_vehicle_fixture"] },
       { "id": "promotion", "type": "promotion", "target_range_seconds": [24, 47], "label": "Oferta y alternativas", "visual_direction": "Muestra el vehículo y alterna rótulos breves de la oferta.", "spoken_text": "Pregunta por [PRECIO POR CONFIRMAR] y [PROMOCIÓN POR CONFIRMAR]. También puedes conocer [DISPONIBILIDAD POR CONFIRMAR], además de opciones de [FINANCIAMIENTO POR CONFIRMAR] sujetas a [CONDICIONES DE CRÉDITO POR CONFIRMAR]. Así puedes comparar los detalles que importan antes de elegir.", "on_screen_text": "Precio · promoción · disponibilidad · financiamiento", "used_vehicle_fact_refs": [], "used_offer_fields": [], "source_refs": [] },
-      { "id": "closing", "type": "closing", "target_range_seconds": [47, 60], "label": "Siguiente paso", "visual_direction": "Cierra con una toma limpia del auto y el contacto de la agencia.", "spoken_text": "Escríbenos para conocer las opciones. La vigencia es [VIGENCIA POR CONFIRMAR]. Tu próximo camino puede empezar aquí.", "on_screen_text": "Vigencia: [VIGENCIA POR CONFIRMAR]", "used_vehicle_fact_refs": [], "used_offer_fields": [], "source_refs": [] }
-    ]
+      { "id": "closing", "type": "closing", "target_range_seconds": [47, 60], "label": "Siguiente paso", "visual_direction": "Cierra con una toma limpia del auto y el contacto de la agencia.", "spoken_text": "La vigencia es [VIGENCIA POR CONFIRMAR]. Tu próximo camino puede empezar aquí.", "on_screen_text": "Vigencia: [VIGENCIA POR CONFIRMAR]", "used_vehicle_fact_refs": [], "used_offer_fields": [], "source_refs": [] }
+    ],
+    "closing_cta": { "contact_text": "Contáctanos en [MEDIO DE CONTACTO POR CONFIRMAR].", "engagement_text": "Síguenos, dale me gusta y comenta qué opción te interesa." }
   },
   "validity_disclosure": {
     "status": "PENDING",

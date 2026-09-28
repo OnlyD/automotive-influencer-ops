@@ -84,6 +84,12 @@ export function createPresenterDocumentModel(workflowId: string, inputValue: unk
       ...(placeholders.length > 0 ? ["Los textos entre corchetes son datos comerciales pendientes. Sustitúyelos antes de grabar; no leas los marcadores literalmente."] : []),
       ...(vehicleFactsUsed.size < 2 ? ["La investigación disponible aporta menos de dos datos utilizables; el guion puede necesitar más contexto técnico."] : []),
     ];
+    const finalScene = scenes.at(-1);
+    const closingCta = script.closing_cta as { contact_text?: string; engagement_text?: string } | undefined;
+    if (finalScene && closingCta) {
+      const ctaText = [closingCta.contact_text, closingCta.engagement_text].filter((text): text is string => typeof text === "string" && text.length > 0).join(" ");
+      if (ctaText && !finalScene.spoken_text.includes(ctaText)) finalScene.spoken_text = `${finalScene.spoken_text} ${ctaText}`;
+    }
     return {
       title: script.title,
       vehicleLine: vehicleLine(vehicle),
@@ -106,8 +112,10 @@ export function createPresenterDocumentModel(workflowId: string, inputValue: unk
     const script = output.script as Record<string, any>;
     const blocks = script.blocks as Array<Record<string, any>>;
     const finalBlock = blocks.at(-1);
-    if (finalBlock && typeof script.closing_cta?.spoken_text === "string" && !finalBlock.spoken_text.includes(script.closing_cta.spoken_text)) {
-      finalBlock.spoken_text = `${finalBlock.spoken_text} ${script.closing_cta.spoken_text}`;
+    const closingCta = script.closing_cta as { contact_text?: string; engagement_text?: string } | undefined;
+    if (finalBlock && closingCta) {
+      const ctaText = [closingCta.contact_text, closingCta.engagement_text].filter((text): text is string => typeof text === "string" && text.length > 0).join(" ");
+      if (ctaText && !finalBlock.spoken_text.includes(ctaText)) finalBlock.spoken_text = `${finalBlock.spoken_text} ${ctaText}`;
     }
     const sourceIds = new Set<string>(blocks.flatMap((block) => block.source_refs as string[]));
     return {

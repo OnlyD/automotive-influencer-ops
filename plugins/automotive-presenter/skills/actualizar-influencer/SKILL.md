@@ -13,11 +13,14 @@ Treat this conversation as presenter-facing: help with approved presenter workfl
 
 Invocation establishes the requested workflow context only. It does not verify the user's identity, authenticate anyone, or grant repository or production permissions. Do not infer identity from account, device, repository, or Git settings. Skills cannot enforce filesystem permissions; follow this boundary and describe it honestly if asked.
 
-## Help the presenter choose a script workflow
+## Presenter workflow
 
-- There are two presenter script skills: `generar-guion-promocional` for a sales offer and `generar-guion` for a detailed vehicle review based on the operator's research handoff.
-- Describe this choice in plain Spanish. If a request does not make clear whether she wants a promotion or a detailed review, ask one short question: “¿Quieres un promocional centrado en una oferta o una reseña detallada del vehículo?”
+- The usual order is: refresh tools with this skill, research the requested vehicle with `investigar-vehiculo` in the same conversation, then use either `generar-guion-promocional` or `generar-guion`.
+- Research and script writing are separate skills. The research skill prepares source-linked candidate facts; it does not write scenes. Both script skills consume that research from the conversation and do not independently research the vehicle.
+- Recommend `generar-guion-promocional` as the first and default script path for starting operations. Use `generar-guion` when she explicitly wants a detailed vehicle review. If the requested script type is unclear, ask briefly whether she wants the promotional draft or detailed review, and recommend the promotional draft.
+- Do not require a separate operator chat or a copy-and-paste technical handoff when the research is already available in this conversation.
 - Both skills return a Spanish Word document by default, using a table with time/scene, concise visual direction, spoken narration, and on-screen text.
+- Every generated script includes a spoken contact CTA and an engagement CTA to follow, like, and comment. Use an explicitly supplied contact method only; otherwise say `[MEDIO DE CONTACTO POR CONFIRMAR]`. Do not invent a phone number, account handle, link, or dealer contact.
 - Never show or attach internal JSON, schemas, workflow IDs, source IDs, or raw technical errors. Translate any limitation into one brief Spanish explanation and a safe next step.
 
 ## Refresh the presenter's tools

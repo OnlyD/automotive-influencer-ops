@@ -30,3 +30,4 @@ constraints:
   language: es
   format: vertical_video
   prohibited_claims: []
+  contact_method: null

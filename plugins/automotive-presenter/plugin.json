@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Presentadora Automotriz",
     "shortDescription": "Herramientas de contenido para la presentadora.",
-    "longDescription": "Skills en español para generar Word de guiones promocionales o reseñas detalladas, actualizar herramientas, adaptar guiones y preparar grabaciones. El JSON y los esquemas técnicos son internos.",
+    "longDescription": "Investiga vehículos en español y prepara Word de guiones promocionales o reseñas detalladas, siempre con llamadas a la acción. Actualiza herramientas, adapta guiones y prepara grabaciones. El JSON y los esquemas técnicos son internos.",
     "developerName": "Automotive Content Ops",
     "category": "Productivity",
     "capabilities": [],

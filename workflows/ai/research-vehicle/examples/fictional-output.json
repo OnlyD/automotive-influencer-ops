@@ -1,5 +1,5 @@
 {
-  "workflow": { "id": "research-vehicle", "version": "1.0.0" },
+  "workflow": { "id": "research-vehicle", "version": "1.1.0" },
   "vehicle_id": "veh_example",
   "candidate_facts": [{ "candidate_fact_id": "candidate_power_001", "field": "engine.power_hp", "value": 1, "unit": "hp_fixture", "scope": "MODEL_TRIM", "source_ids": ["src_fixture_honda_001"], "notes": "Fictional test value; not vehicle information." }],
   "sources": [{ "sourceId": "src_fixture_honda_001", "type": "TEST_FIXTURE", "title": "Fictional source fixture", "publisher": "Automotive project test data", "url": "https://example.invalid/fixture", "retrievedAt": "2026-01-01T00:00:00Z", "publishedAt": null, "contentHash": null, "archiveLocation": null, "reliabilityTier": 5, "locale": "en-US" }],

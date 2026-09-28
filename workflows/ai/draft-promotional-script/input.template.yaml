@@ -11,6 +11,8 @@ editorial_brief:
   angle: Invite viewers to ask about a current offer without overstating terms
   tone: Clear, warm, and sales-focused
   target_duration_seconds: 60
+closing_cta:
+  contact_method: null
 vehicle_research:
   candidate_facts:
     - candidate_fact_id: candidate_fixture_001

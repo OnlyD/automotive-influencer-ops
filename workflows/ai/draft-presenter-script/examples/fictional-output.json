@@ -1,15 +1,15 @@
 {
   "production_id": "prd_example",
-  "workflow": { "id": "draft-presenter-script", "version": "1.1.0" },
+  "workflow": { "id": "draft-presenter-script", "version": "1.2.0" },
   "script": {
     "title": "Un atributo ficticio, explicado con claridad",
     "target_duration_seconds": 30,
     "blocks": [
       { "id": "hook", "target_range_seconds": [0, 5], "spoken_text": "Hoy te cuento un dato de ejemplo sobre este vehículo ficticio.", "on_screen_text": null, "shot_intent": "Presentar el vehículo sin afirmar especificaciones no documentadas.", "candidate_fact_refs": [], "source_refs": [], "clip_candidate": false },
       { "id": "detail", "target_range_seconds": [5, 25], "spoken_text": "La ficha ficticia menciona tres datos: un atributo de prueba con valor uno, una pantalla de ocho pulgadas y una capacidad de carga de cuatrocientos litros. Son detalles que ayudan a imaginar distintos aspectos del vehículo; su exactitud y contexto todavía requieren revisión.", "on_screen_text": "Pantalla: 8 pulgadas · Carga: 400 L", "shot_intent": "Mostrar el tablero y después el área de carga para ilustrar dos de los datos candidatos, sin añadir interpretaciones no documentadas.", "candidate_fact_refs": ["candidate_fixture_001", "candidate_fixture_002", "candidate_fixture_003"], "source_refs": ["src_fixture_001"], "clip_candidate": true },
-      { "id": "close", "target_range_seconds": [25, 30], "spoken_text": "Este dato todavía requiere revisión; después podremos explicarlo con contexto.", "on_screen_text": null, "shot_intent": "Cerrar recordando que se trata de una vista previa.", "candidate_fact_refs": [], "source_refs": [], "clip_candidate": false }
+      { "id": "close", "target_range_seconds": [25, 30], "spoken_text": "Estos datos todavía requieren revisión antes de usarlos.", "on_screen_text": null, "shot_intent": "Cerrar recordando que se trata de una vista previa.", "candidate_fact_refs": [], "source_refs": [], "clip_candidate": false }
     ],
-    "closing_cta": { "spoken_text": "¿Qué otro detalle te gustaría conocer cuando esté confirmado?" }
+    "closing_cta": { "contact_text": "Contáctame en [MEDIO DE CONTACTO POR CONFIRMAR].", "engagement_text": "Sígueme, dale me gusta y cuéntame en los comentarios qué otro detalle te gustaría conocer." }
   },
   "candidate_fact_usage": [
     { "candidate_fact_id": "candidate_fixture_001", "used_in_blocks": ["detail"] },
