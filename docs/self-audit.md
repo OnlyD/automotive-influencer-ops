@@ -22,7 +22,7 @@ Date: 2026-09-30. Scope: supervised local promotional and separate-voice-over wo
 
 ## Readiness assessment
 
-The corrected implementation and its documented contracts support a supervised **local** trial. Validation results are recorded in [validation-report.md](validation-report.md); this is an assessment of known gaps in that scope, not a guarantee that no unknown defect exists.
+All 67 tests passed locally and from a fresh Git clone on Node 24; container media/registry/smoke checks and implementation CI passed. The corrected implementation and its documented contracts support a supervised **local** trial. Validation results are recorded in [validation-report.md](validation-report.md); this is an assessment of known gaps in that scope, not a guarantee that no unknown defect exists.
 
 ## Remaining boundaries
 

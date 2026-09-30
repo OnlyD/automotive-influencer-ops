@@ -30,4 +30,6 @@ Snapshot: 2026-09-30. Existing repository: `automotive-influencer-ops`, branch `
 
 CODEOWNERS still awaits confirmed reviewer identities; branch protection was not asserted or changed by this local implementation.
 
+The pre-trial audit added CI tracked-tree secret-pattern checks, actual master stream validation and two complete synthetic production integrations; see [self-audit.md](self-audit.md) and [validation-report.md](validation-report.md).
+
 See `e2e-readiness.md` for the current trial boundary. The remaining absence of AWS components is a real deployment/remote-operation limitation; local publishing handoff is the explicit pilot route, not an implementation of all cloud infrastructure.
