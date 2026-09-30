@@ -72,7 +72,7 @@ export async function command(
         input.output,
       );
     case "adapt":
-      return ops.adapt(actor, ref, input.changes);
+      return ops.adapt(actor, ref, input.changes, input.sceneOrder);
     case "approve":
       return ops.approve(
         actor,

@@ -15,9 +15,10 @@ jobs:
           version: 9.15.9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - run: pnpm secrets:check
       - run: pnpm format:check
       - run: pnpm test

@@ -2,7 +2,7 @@
 
 **Estado:** ejecución autorizada; bootstrap e implementación incremental en curso  
 **Fecha de consolidación:** 27 de septiembre de 2026  
-**Versión de la especificación:** 2.8.0
+**Versión de la especificación:** 2.9.0
 **Nombre lógico del repositorio:** `automotive-content-ops`  
 **Responsable técnico y autoridad de integración:** operador técnico del proyecto  
 **Audiencia principal:** agente Codex que continuará la implementación, operador técnico y futuros mantenedores  
@@ -38,6 +38,8 @@ El acuerdo operativo del proyecto conserva las decisiones de colaboración y pro
 | 2.6.0 | 27-sep-2026 | Requiere que el guion promocional consuma investigación separada y use solo dos o tres datos atractivos y pertinentes de la unidad. |
 | 2.7.0 | 27-sep-2026 | Defines the presenter's same-conversation flow: research first, then choose a promotional or detailed script; both scripts include contact and follow/like/comment calls to action. |
 | 2.8.0 | 30-sep-2026 | Adds the supervised local production machinery for promotional and voice-over trials: immutable versions, exact approvals, media intake/rendering, registered worker jobs, n8n, clips/captions and a manual publication handoff. Cloud deployment and live publication remain separately gated. |
+
+| 2.9.0 | 30-sep-2026 | Records local trial audit corrections, synthetic complete-flow evidence, historical receipt semantics and supported runtime. |
 
 ### Punto de reanudación obligatorio en Codex
 
@@ -1518,7 +1520,7 @@ Los endpoints concretos se derivan de estos recursos después de validar el fluj
 | Acción | Presentadora | Operador | Worker local | Sistema |
 | --- | --- | --- | --- | --- |
 | Consultar producción asignada | Sí | Sí | Limitado | Sí |
-| Investigar vehículo y entregar paquete de fuentes candidato | No | Sí | No | Valida |
+| Research a vehicle and deliver a candidate source bundle | Yes | Yes | No | Validates |
 | Solicitar vista previa no oficial con hechos candidatos enlazados a fuentes | Sí | Sí | No | Valida |
 | Adaptar campos creativos | Sí | Sí | No | Valida |
 | Modificar hechos | No | Sí, con evidencia | No | Valida |
@@ -1841,3 +1843,19 @@ The operator authorized continuing the local machinery until a supervised full t
 - Commercial confirmation and availability are reviewed on publication day, using UTC in the local adapter; an expired/future confirmation cannot pass. Changed or refreshed conditions create a new script version and renewed dependent reviews.
 - The pinned n8n Compose workflow remains inactive until the operator explicitly enables it. It calls only the controlled local worker endpoint and mounts no Codex or social credentials.
 - Component and synthetic-media checks may run during engineering. The full real trial remains pending, with source/media/rights/contact/account setup and final publication approval. Increment F retains the unresolved cloud region/account, identity, retention and off-device backup requirements; automatic publishing retains provider/platform approval requirements.
+
+
+## 54. Local trial audit corrections (2.9.0)
+
+ADR-0014 and `docs/self-audit.md` record the audit of section 53. Section 42 now permits presenter candidate research, consistently with sections 13/36, increment D and ADR-0010; factual verification remains operator-only.
+
+- A production retains one primary script ID. Only a complete, current set of applicable approvals can make a script official or supersede the prior official version. Canonical fact/source snapshots and hashes remain attached to that exact version.
+- Creative adaptation may reorder existing scenes while preserving their durations, locked claims and final closing. Lineage identifies the actual edited base version. No-op revisions are rejected.
+- Recording requires usable visual material and narration. Separate voice-over must be an audio asset; render-plan subtitles and source/audio suitability are validated before enqueue.
+- Actual master bytes must satisfy the MP4/H.264/yuv420p/AAC, 1080×1920 and duration contract, including manually edited masters. Format validation does not establish editorial or rights approval.
+- Clip/package release rechecks ancestor reviews. Entering PROGRAMADO rechecks current release gates. Failed state transitions preserve state and retain a typed audit event.
+- A publication receipt is an operator attestation of an already performed manual action. It must follow recorded scheduling intent and satisfy exact-version reviews and retained evidence at its attested publication time. Later source expiry or stock changes must not erase historical publication/metrics; they still block a fresh export or publication authorization. Metrics cannot claim a window longer than elapsed publication time.
+- Workers compare leased requests against persisted input/hash, isolate each render attempt by lease token and serialize polling within one process. Separate worker processes remain operator-managed.
+- `production-script@1.1.0` permits a null URL for identifiable dealer confirmations without inventing public links. Adaptation, caption and clip-proposal AI contracts are 1.1.0; definition locks are refreshed. Earlier string URL records remain valid.
+- Node 24 LTS is the supported runtime. CI includes bounded tracked-tree credential-pattern and forbidden media/runtime checks; these do not prove absence of every secret or inspect Git history.
+- Both complete synthetic promotional and voice-over flows exercise BORRADOR through MEDIDO without external calls. Twenty-second generated media establishes functional integration, not acceptance of the specified 120–150-second real pilot. Real presenter, editorial, rights, commercial and account acceptance remains pending.

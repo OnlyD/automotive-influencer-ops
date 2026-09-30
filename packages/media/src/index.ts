@@ -190,6 +190,47 @@ export async function verifyAsset(
       "Media path or content no longer matches the registered asset.",
     );
 }
+export async function validateMasterMedia(
+  root: string,
+  asset: MediaAsset,
+  duration: number,
+): Promise<void> {
+  await verifyAsset(root, asset);
+  const info = JSON.parse(
+    await runMediaTool("ffprobe", [
+      "-v",
+      "error",
+      "-protocol_whitelist",
+      "file,pipe",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      asset.path,
+    ]),
+  );
+  const videos = info.streams.filter((s: any) => s.codec_type === "video");
+  const audios = info.streams.filter((s: any) => s.codec_type === "audio");
+  const brand = String(info.format?.tags?.major_brand ?? "").trim();
+  if (
+    asset.mimeType !== "video/mp4" ||
+    brand === "qt" ||
+    !/mov|mp4/.test(String(info.format?.format_name)) ||
+    videos.length !== 1 ||
+    audios.length !== 1 ||
+    info.streams.length !== 2 ||
+    videos[0].codec_name !== "h264" ||
+    videos[0].pix_fmt !== "yuv420p" ||
+    videos[0].width !== 1080 ||
+    videos[0].height !== 1920 ||
+    audios[0].codec_name !== "aac" ||
+    Math.abs(Number(info.format.duration) - duration) > 0.15 ||
+    !Number.isFinite(Number(info.format.duration))
+  )
+    throw new Error(
+      "Publication media must be an actual 1080×1920 H.264/yuv420p and AAC MP4 matching the approved duration.",
+    );
+}
 function timestamp(seconds: number): string {
   const ms = Math.round(seconds * 1000);
   return (

@@ -28,7 +28,7 @@ export async function presenterDocument(a: Artifact): Promise<Buffer> {
     }));
     model.sources = s.sources.map((source) => ({
       title: source.title,
-      url: source.url,
+      url: source.url ?? undefined,
       retrievedOn: source.retrievedAt.slice(0, 10),
     }));
   } else if (a.kind === "SHOOTING_PLAN") {

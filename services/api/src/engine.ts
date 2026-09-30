@@ -21,6 +21,8 @@ import {
   verifyAsset,
   renderVideo,
   extractClip,
+  validateMasterMedia,
+  subtitlesSrt,
   type MediaAsset,
 } from "@automotive/media";
 import {
@@ -122,14 +124,16 @@ function approved(
   a: Artifact,
   type: ApprovalType,
   now: Date,
+  historical = false,
 ): void {
-  current(s, a);
+  if (!historical) current(s, a);
   const decision = s.approvals
     .filter(
       (p) =>
         p.artifact.artifactId === a.artifactId &&
         p.artifact.version === a.version &&
-        p.type === type,
+        p.type === type &&
+        new Date(p.decidedAt) <= now,
     )
     .at(-1);
   if (
@@ -190,6 +194,19 @@ function validateScript(value: unknown): asserts value is ProductionScript {
       "Closing must preserve contact and follow/like/comment calls to action.",
     );
   if (script.commercial) {
+    if (
+      script.scenes.some(
+        (scene) =>
+          scene.commercial &&
+          !scene.sourceRefs.some((id) =>
+            script.commercial!.sourceIds.includes(id),
+          ),
+      )
+    )
+      fail(
+        "COMMERCIAL_SOURCE",
+        "Every commercial scene must retain its confirming offer source.",
+      );
     const validity = new Intl.DateTimeFormat("es-MX", {
       day: "numeric",
       month: "long",
@@ -250,6 +267,8 @@ function put(
   sourceCommit: string,
   workflowId: string,
   lockedFactsHash: string,
+  baseVersion?: number,
+  workflowVersion = "1.0.0",
 ): Artifact {
   assertId(id);
   production(s, pid);
@@ -272,7 +291,7 @@ function put(
   const version = (previous?.version ?? 0) + 1;
   const provenance = {
     workflowId,
-    workflowVersion: "1.0.0",
+    workflowVersion,
     sourceCommit,
     runner: "local-deterministic",
   };
@@ -280,7 +299,7 @@ function put(
     artifactId: id,
     version,
     productionId: pid,
-    parentVersion: previous?.version ?? null,
+    parentVersion: baseVersion ?? previous?.version ?? null,
     kind,
     payload: structuredClone(payload),
     parents: parents.map((p) => ({
@@ -306,7 +325,12 @@ function put(
   });
   return a;
 }
-function scriptReady(s: LocalState, a: Artifact, now: Date): ProductionScript {
+function scriptReady(
+  s: LocalState,
+  a: Artifact,
+  now: Date,
+  historical = false,
+): ProductionScript {
   const script = a.payload;
   validateScript(script);
   if (
@@ -323,11 +347,11 @@ function scriptReady(s: LocalState, a: Artifact, now: Date): ProductionScript {
       "UNRESOLVED_PLACEHOLDER",
       "Resolve all script placeholders before recording or rendering.",
     );
-  approved(s, a, "FACTUAL", now);
-  approved(s, a, "CREATIVE", now);
+  approved(s, a, "FACTUAL", now, historical);
+  approved(s, a, "CREATIVE", now, historical);
   const p = production(s, a.productionId);
   if (
-    p.mode === "PROMO" &&
+    (p.mode === "PROMO" || script.scenes.some((scene) => scene.commercial)) &&
     (!script.commercial || !script.scenes.some((scene) => scene.commercial))
   )
     fail(
@@ -335,7 +359,7 @@ function scriptReady(s: LocalState, a: Artifact, now: Date): ProductionScript {
       "Promo recording requires confirmed offer terms and validity.",
     );
   if (script.commercial) {
-    approved(s, a, "COMMERCIAL", now);
+    approved(s, a, "COMMERCIAL", now, historical);
     if (
       new Date(script.commercial.validUntil) <= now ||
       new Date(script.commercial.confirmedAt) > now
@@ -346,6 +370,33 @@ function scriptReady(s: LocalState, a: Artifact, now: Date): ProductionScript {
       );
   }
   return script;
+}
+function mediaReviewed(
+  s: LocalState,
+  a: Artifact,
+  now: Date,
+  historical = false,
+): void {
+  for (const gate of ["CREATIVE", "TECHNICAL", "RIGHTS"] as const)
+    approved(s, a, gate, now, historical);
+  if (a.kind === "CLIP") {
+    mediaReviewed(
+      s,
+      artifact(s, (a.payload as { master: Ref }).master, "MASTER"),
+      now,
+      historical,
+    );
+  } else if (a.kind === "MASTER") {
+    const plan = (a.payload as { plan?: Ref }).plan;
+    if (plan)
+      approved(
+        s,
+        artifact(s, plan, "RENDER_PLAN"),
+        "CREATIVE",
+        now,
+        historical,
+      );
+  } else fail("INVALID_ARTIFACT", "Expected reviewed media.");
 }
 function masterScript(s: LocalState, a: Artifact): Artifact {
   if (a.kind === "MASTER")
@@ -358,6 +409,7 @@ function masterScript(s: LocalState, a: Artifact): Artifact {
   fail("INVALID_ARTIFACT", "Expected an approved master or clip.");
 }
 export class Operations {
+  private cycleActive = false;
   constructor(
     readonly store: FileOperationStore,
     readonly sourceCommit: string,
@@ -447,16 +499,18 @@ export class Operations {
         "STALE_IDENTITY",
         "Canonical vehicle identity has changed or is missing.",
       );
-    if (script.commercial && ["SOLD", "UNAVAILABLE"].includes(vehicle.status))
+    if (script.commercial && vehicle.status !== "AVAILABLE")
       fail(
         "STALE_COMMERCIAL",
-        "Canonical inventory no longer marks the vehicle available for this offer.",
+        "Confirm canonical AVAILABLE status before preparing or reusing this offer.",
       );
     const facts = await this.inventory.listVerifiedFacts(p.vehicleId);
     for (const selected of script.facts) {
       const fact = facts.find((f) => f.vehicleFactId === selected.id);
       if (
         !fact ||
+        !fact.verifiedAt ||
+        new Date(fact.verifiedAt) > this.clock() ||
         (fact.validUntil && new Date(fact.validUntil) <= this.clock())
       )
         fail(
@@ -464,9 +518,21 @@ export class Operations {
           "Review the selected canonical fact before approval or reuse.",
         );
       const sources = await this.inventory.listSources(fact.sourceIds);
+      const snapshotFact = script.verifiedReferences?.facts.find(
+        (f) => f.vehicleFactId === selected.id,
+      );
+      const snapshotSources = sources.map((src) =>
+        script.verifiedReferences?.sources.find(
+          (s) => s.sourceId === src.sourceId,
+        ),
+      );
       if (
         !selected.canonicalFactHash ||
-        selected.canonicalFactHash !== digest({ fact, sources })
+        selected.canonicalFactHash !== digest({ fact, sources }) ||
+        !snapshotFact ||
+        digest(snapshotFact) !== digest(fact) ||
+        snapshotSources.some((src) => !src) ||
+        digest(snapshotSources) !== digest(sources)
       )
         fail(
           "STALE_FACT",
@@ -494,6 +560,7 @@ export class Operations {
         );
       const sources = await this.inventory.listSources(fact.sourceIds);
       if (
+        sources.length !== fact.sourceIds.length ||
         selected.sourceIds.length !== fact.sourceIds.length ||
         selected.sourceIds.some((id) => !fact.sourceIds.includes(id)) ||
         sources.some(
@@ -532,6 +599,7 @@ export class Operations {
       a.productionId,
       a.artifactId,
       script,
+      a.version,
     );
     return bound;
   }
@@ -540,11 +608,26 @@ export class Operations {
     pid: string,
     id: string,
     value: unknown,
+    baseVersion?: number,
   ): Promise<Artifact> {
     operator(actor);
     validateScript(value);
-    return this.store.transaction(async (s) =>
-      put(
+    return this.store.transaction(async (s) => {
+      if (baseVersion !== undefined)
+        artifact(s, { artifactId: id, version: baseVersion }, "SCRIPT");
+      if (
+        s.artifacts.some(
+          (a) =>
+            a.productionId === pid &&
+            a.kind === "SCRIPT" &&
+            a.artifactId !== id,
+        )
+      )
+        fail(
+          "SCRIPT_IDENTITY",
+          "Use the production's existing script identifier for revisions.",
+        );
+      return put(
         s,
         pid,
         id,
@@ -562,8 +645,9 @@ export class Operations {
           commercial: value.commercial,
           contactMethod: value.contactMethod,
         }),
-      ),
-    );
+        baseVersion,
+      );
+    });
   }
   async adapt(
     actor: Actor,
@@ -574,6 +658,7 @@ export class Operations {
       visual?: string;
       onScreen?: string;
     }>,
+    sceneOrder?: string[],
   ): Promise<{
     artifact: Artifact;
     technicalReviewRequired: boolean;
@@ -586,7 +671,7 @@ export class Operations {
       const script = structuredClone(original.payload) as ProductionScript;
       let technicalReviewRequired = false;
       if (
-        changes.length === 0 ||
+        (!changes.length && !sceneOrder) ||
         new Set(changes.map((c) => c.sceneId)).size !== changes.length
       )
         fail("INVALID_REVISION", "Supply unique scene changes.");
@@ -619,6 +704,38 @@ export class Operations {
             scene[key] = change[key]!;
           }
       }
+      if (sceneOrder) {
+        if (
+          sceneOrder.length !== script.scenes.length ||
+          new Set(sceneOrder).size !== sceneOrder.length ||
+          sceneOrder.some(
+            (id) => !script.scenes.some((scene) => scene.id === id),
+          ) ||
+          sceneOrder.at(-1) !== script.scenes.at(-1)!.id
+        )
+          fail(
+            "INVALID_REVISION",
+            "Scene order must contain every original scene exactly once and retain the closing last.",
+          );
+        const before = script.scenes.map((scene) => scene.id);
+        let start = 0;
+        script.scenes = sceneOrder.map((id) => {
+          const scene = script.scenes.find((scene) => scene.id === id)!;
+          const length = scene.end - scene.start;
+          const reordered = { ...scene, start, end: start + length };
+          start += length;
+          return reordered;
+        });
+        if (before.join() !== sceneOrder.join()) {
+          diff.push({ field: "sceneOrder", before, after: sceneOrder });
+          technicalReviewRequired = true;
+        }
+      }
+      if (!diff.length)
+        fail(
+          "INVALID_REVISION",
+          "The revision must include an actual creative change.",
+        );
       validateScript(script);
       const a = put(
         s,
@@ -632,6 +749,8 @@ export class Operations {
         this.sourceCommit,
         "adapt-presenter-script",
         original.lockedFactsHash,
+        original.version,
+        "1.1.0",
       );
       record(s, "script.adapted", a.productionId, actor, this.clock(), {
         base,
@@ -674,10 +793,10 @@ export class Operations {
     return this.store.transaction(async (s) => {
       const a = artifact(s, ref);
       current(s, a);
-      if (type === "FACTUAL" && decision === "APPROVED")
-        await this.canonicalFacts(a);
       if (
         (["FACTUAL", "COMMERCIAL"].includes(type) && a.kind !== "SCRIPT") ||
+        (type === "COMMERCIAL" &&
+          !(a.payload as ProductionScript).commercial) ||
         (type === "PUBLICATION" && a.kind !== "PUBLICATION_PACKAGE") ||
         (["TECHNICAL", "RIGHTS"].includes(type) &&
           !["MASTER", "CLIP"].includes(a.kind))
@@ -686,6 +805,12 @@ export class Operations {
           "INVALID_APPROVAL",
           "Approval type does not apply to this artifact.",
         );
+      if (type === "FACTUAL" && decision === "APPROVED")
+        await this.canonicalFacts(a);
+      if (type === "TECHNICAL" && decision === "APPROVED") {
+        const media = (a.payload as { asset: MediaAsset }).asset;
+        await validateMasterMedia(this.store.root, media, media.duration);
+      }
       const approval = {
         approvalId: `apr_${randomUUID()}`,
         productionId: a.productionId,
@@ -704,7 +829,11 @@ export class Operations {
           ? [
               "FACTUAL",
               "CREATIVE",
-              ...((a.payload as ProductionScript).commercial
+              ...(production(s, a.productionId).mode === "PROMO" ||
+              (a.payload as ProductionScript).commercial ||
+              (a.payload as ProductionScript).scenes.some(
+                (scene) => scene.commercial,
+              )
                 ? ["COMMERCIAL" as const]
                 : []),
             ]
@@ -725,9 +854,17 @@ export class Operations {
       );
       a.status = latest.some((p) => p?.decision === "REJECTED")
         ? "REJECTED"
-        : latest.every((p) => p?.decision === "APPROVED")
+        : latest.every(
+              (p) =>
+                p?.decision === "APPROVED" &&
+                (!p.validUntil || new Date(p.validUntil) > this.clock()),
+            )
           ? "APPROVED"
           : "IN_REVIEW";
+      if (a.status === "APPROVED" && a.kind === "SCRIPT") {
+        await this.canonicalFacts(a);
+        scriptReady(s, a, this.clock());
+      }
       if (a.status === "APPROVED")
         for (const older of s.artifacts)
           if (
@@ -749,6 +886,36 @@ export class Operations {
     to: ProductionState,
   ): Promise<Production> {
     operator(actor);
+    try {
+      return await this.transitionChecked(actor, pid, to);
+    } catch (error) {
+      await this.store.transaction(async (s) => {
+        const p = s.productions.find((p) => p.productionId === pid);
+        if (p)
+          record(
+            s,
+            "production.transition_rejected",
+            pid,
+            actor,
+            this.clock(),
+            {
+              from: p.state,
+              to,
+              code:
+                error instanceof OperationError
+                  ? error.code
+                  : "VALIDATION_FAILED",
+            },
+          );
+      });
+      throw error;
+    }
+  }
+  private async transitionChecked(
+    actor: Actor,
+    pid: string,
+    to: ProductionState,
+  ): Promise<Production> {
     return this.store.transaction(async (s) => {
       const p = production(s, pid),
         now = this.clock();
@@ -767,7 +934,7 @@ export class Operations {
           "ARTIFACT_REQUIRED",
           `A ${kind.toLowerCase()} artifact is required.`,
         );
-      if (!["INVESTIGANDO"].includes(to)) {
+      if (!["INVESTIGANDO", "PUBLICADO", "MEDIDO"].includes(to)) {
         const scripts = s.artifacts.filter(
           (a) => a.productionId === pid && a.kind === "SCRIPT",
         );
@@ -784,11 +951,30 @@ export class Operations {
         current(s, plan);
         approved(s, plan, "CREATIVE", now);
       }
-      if (
-        to === "GRABADO" &&
-        s.assets.filter((a) => a.productionId === pid).length === 0
-      )
-        fail("MEDIA_REQUIRED", "Recorded material has not been registered.");
+      if (to === "GRABADO") {
+        approved(s, latest("SHOOTING_PLAN"), "CREATIVE", now);
+        const material = s.assets.filter((a) => a.productionId === pid);
+        const visual = material.some((a) =>
+          ["VIDEO", "IMAGE"].includes(a.kind),
+        );
+        const separateAudio = material.some(
+          (a) => a.kind === "AUDIO" && a.hasAudio,
+        );
+        const sourceAudio = material.some(
+          (a) => a.kind === "VIDEO" && a.hasAudio,
+        );
+        if (
+          !visual ||
+          (p.mode === "VOICE_OVER"
+            ? !separateAudio
+            : !sourceAudio && !separateAudio)
+        )
+          fail(
+            "MEDIA_REQUIRED",
+            "Register visual material and complete source narration or separate voice-over audio.",
+          );
+        for (const asset of material) await verifyAsset(this.store.root, asset);
+      }
       if (to === "EDITADO") {
         const master = latest("MASTER");
         current(s, master);
@@ -796,14 +982,21 @@ export class Operations {
       if (to === "LISTO") {
         const master = latest("MASTER");
         scriptReady(s, masterScript(s, master), now);
-        for (const gate of ["CREATIVE", "TECHNICAL", "RIGHTS"] as const)
-          approved(s, master, gate, now);
+        mediaReviewed(s, master, now);
       }
       if (
         to === "PROGRAMADO" &&
         !s.publications.some((pub) => pub.productionId === pid)
       )
         fail("PUBLICATION_REQUIRED", "No approved publication is scheduled.");
+      if (to === "PROGRAMADO")
+        for (const pub of s.publications.filter(
+          (pub) => pub.productionId === pid && pub.status === "PROGRAMADO",
+        ))
+          await this.publicationReady(
+            s,
+            artifact(s, pub.package, "PUBLICATION_PACKAGE"),
+          );
       if (
         to === "PUBLICADO" &&
         (!s.publications.some((pub) => pub.productionId === pid) ||
@@ -879,7 +1072,7 @@ export class Operations {
         "INVALID_MEDIA",
         "Edited masters must be registered 1080×1920 videos with audio.",
       );
-    await verifyAsset(this.store.root, media);
+    await validateMasterMedia(this.store.root, media, media.duration);
     return this.store.transaction(async (s) => {
       const script = artifact(s, scriptRef, "SCRIPT");
       if (script.productionId !== pid)
@@ -941,7 +1134,11 @@ export class Operations {
         const media = s.assets.find(
           (m) => m.assetId === seg.assetId && m.productionId === pid,
         );
-        if (!media || !script.scenes.some((sc) => sc.id === seg.sceneId))
+        if (
+          !media ||
+          media.kind === "AUDIO" ||
+          !script.scenes.some((sc) => sc.id === seg.sceneId)
+        )
           fail(
             "INVALID_EDIT",
             "Edit references another production, missing media, or an unknown scene.",
@@ -953,6 +1150,11 @@ export class Operations {
           (media.kind !== "IMAGE" && seg.end > media.duration + 0.05)
         )
           fail("INVALID_EDIT", "Invalid source range.");
+        if (plan.audioMode === "SOURCE" && !media.hasAudio)
+          fail(
+            "INVALID_EDIT",
+            "Source narration is missing; register separate voice-over audio.",
+          );
         total += duration;
         sceneDuration.set(
           seg.sceneId,
@@ -989,12 +1191,14 @@ export class Operations {
           (m) =>
             m.assetId === plan.voiceoverAssetId &&
             m.productionId === pid &&
-            m.hasAudio,
+            m.kind === "AUDIO" &&
+            m.hasAudio &&
+            Math.abs(m.duration - total) <= 0.15,
         )
       )
         fail(
           "INVALID_EDIT",
-          "Register the voice-over audio for this production.",
+          "Register separate voice-over audio matching the complete edit duration for this production.",
         );
       if (
         production(s, pid).mode === "VOICE_OVER" &&
@@ -1022,6 +1226,7 @@ export class Operations {
         )
       )
         fail("INVALID_EDIT", "Subtitle time is outside the edit.");
+      subtitlesSrt(plan.subtitles);
       return put(
         s,
         pid,
@@ -1279,6 +1484,18 @@ export class Operations {
     const token = job.leaseToken!;
     await this.store.transaction(async (s) => {
       const j = this.lease(s, job.jobId, token);
+      if (
+        j.requestHash !== job.requestHash ||
+        digest(j.input) !== digest(job.input) ||
+        j.workflowId !== job.workflowId ||
+        j.productionId !== job.productionId ||
+        j.workflowVersion !== job.workflowVersion ||
+        j.idempotencyKey !== job.idempotencyKey
+      )
+        fail(
+          "INTEGRITY",
+          "Claimed job differs from the persisted immutable request.",
+        );
       j.status = "RUNNING";
       record(
         s,
@@ -1448,7 +1665,7 @@ export class Operations {
           "productions",
           j.productionId,
           "renders",
-          `${j.jobId}-${j.attempt}`,
+          `${j.jobId}-${j.attempt}-${j.leaseToken}`,
         ),
         (script.payload as ProductionScript).scenes
           .filter((scene) => scene.onScreen.trim())
@@ -1481,8 +1698,7 @@ export class Operations {
     }
     if (j.workflowId === "extract-clips") {
       const master = get(j.input.master as Ref, "MASTER");
-      for (const gate of ["CREATIVE", "TECHNICAL", "RIGHTS"] as const)
-        approved(s, master, gate, now);
+      mediaReviewed(s, master, now);
       await this.canonicalFacts(masterScript(s, master));
       const script = scriptReady(s, masterScript(s, master), now);
       const clips = j.input.clips as Array<{
@@ -1517,8 +1733,9 @@ export class Operations {
             "A commercial clip must retain its complete validity and closing; prepare a reviewed pickup instead.",
           );
       }
-      return await Promise.all(
-        clips.map(async (clip) => ({
+      const results = [];
+      for (const clip of clips)
+        results.push({
           id: clip.clipId,
           kind: "CLIP" as const,
           payload: {
@@ -1532,7 +1749,7 @@ export class Operations {
                 "productions",
                 j.productionId,
                 "clips",
-                `${j.jobId}-${j.attempt}`,
+                `${j.jobId}-${j.attempt}-${j.leaseToken}`,
                 `${clip.clipId}.mp4`,
               ),
             ),
@@ -1543,8 +1760,8 @@ export class Operations {
           },
           parents: [master],
           lockedFactsHash: master.lockedFactsHash,
-        })),
-      );
+        });
+      return results;
     }
     const request = j.input.request as unknown as PublicationRequest;
     assertContract("publicationRequest", request);
@@ -1560,8 +1777,7 @@ export class Operations {
         "INVALID_ARTIFACT",
         "Package needs a master or clip from this production.",
       );
-    for (const gate of ["CREATIVE", "TECHNICAL", "RIGHTS"] as const)
-      approved(s, master, gate, now);
+    mediaReviewed(s, master, now);
     await this.canonicalFacts(masterScript(s, master));
     const script = scriptReady(s, masterScript(s, master), now);
     if (
@@ -1616,12 +1832,22 @@ export class Operations {
   async cycle(
     worker = "local_worker",
   ): Promise<{ jobId: string; result: Ref[] } | null> {
-    const j = await this.claim(worker);
-    return j ? { jobId: j.jobId, result: await this.executeClaimed(j) } : null;
+    if (this.cycleActive) return null;
+    this.cycleActive = true;
+    try {
+      const j = await this.claim(worker);
+      return j
+        ? { jobId: j.jobId, result: await this.executeClaimed(j) }
+        : null;
+    } finally {
+      this.cycleActive = false;
+    }
   }
   private async publicationReady(
     s: LocalState,
     a: Artifact,
+    at = this.clock(),
+    historical = false,
   ): Promise<
     PublicationRequest & {
       asset: MediaAsset;
@@ -1629,10 +1855,11 @@ export class Operations {
       finalCaption: string;
     }
   > {
-    approved(s, a, "PUBLICATION", this.clock());
-    await this.canonicalFacts(
-      artifact(s, (a.payload as { script: Ref }).script, "SCRIPT"),
-    );
+    approved(s, a, "PUBLICATION", at, historical);
+    if (!historical)
+      await this.canonicalFacts(
+        artifact(s, (a.payload as { script: Ref }).script, "SCRIPT"),
+      );
     const payload = a.payload as PublicationRequest & {
       asset: MediaAsset;
       script: Ref;
@@ -1641,27 +1868,49 @@ export class Operations {
     const script = scriptReady(
       s,
       artifact(s, payload.script, "SCRIPT"),
-      this.clock(),
+      at,
+      historical,
     );
+    if (
+      historical &&
+      script.verifiedReferences?.facts.some(
+        (fact) =>
+          fact.verificationStatus !== "VERIFIED" ||
+          !fact.verifiedAt ||
+          new Date(fact.verifiedAt) > at ||
+          (fact.validUntil && new Date(fact.validUntil) <= at),
+      )
+    )
+      fail(
+        "STALE_FACT",
+        "The retained fact evidence was not valid at the attested publication time.",
+      );
     const master = artifact(s, {
       artifactId: payload.masterId,
       version: payload.masterVersion,
     });
-    for (const gate of ["CREATIVE", "TECHNICAL", "RIGHTS"] as const)
-      approved(s, master, gate, this.clock());
+    mediaReviewed(s, master, at, historical);
+    if (!historical)
+      await validateMasterMedia(
+        this.store.root,
+        payload.asset,
+        payload.asset.duration,
+      );
     if (script.commercial) {
-      const day = this.clock().toISOString().slice(0, 10);
+      const day = at.toISOString().slice(0, 10);
       const commercial = s.approvals
         .filter(
           (p) =>
             p.artifact.artifactId === payload.script.artifactId &&
             p.artifact.version === payload.script.version &&
-            p.type === "COMMERCIAL",
+            p.type === "COMMERCIAL" &&
+            new Date(p.decidedAt) <= at,
         )
         .at(-1)!;
       if (
-        commercial.decidedAt.slice(0, 10) !== day ||
-        script.commercial.confirmedAt.slice(0, 10) !== day
+        new Date(commercial.decidedAt).toISOString().slice(0, 10) !== day ||
+        new Date(script.commercial.confirmedAt).toISOString().slice(0, 10) !==
+          day
       )
         fail(
           "STALE_COMMERCIAL",
@@ -1676,13 +1925,12 @@ export class Operations {
       fail("INVALID_KEY", "Publication idempotency key is required.");
     return this.store.transaction(async (s) => {
       const a = artifact(s, ref, "PUBLICATION_PACKAGE"),
-        payload = await this.publicationReady(s, a);
-      const existing = s.publications.find(
-        (p) =>
-          p.idempotencyKey === key ||
-          (p.package.artifactId === ref.artifactId &&
-            p.package.version === ref.version),
-      );
+        existing = s.publications.find(
+          (p) =>
+            p.idempotencyKey === key ||
+            (p.package.artifactId === ref.artifactId &&
+              p.package.version === ref.version),
+        );
       if (existing) {
         if (
           existing.package.artifactId !== ref.artifactId ||
@@ -1691,6 +1939,7 @@ export class Operations {
           fail("IDEMPOTENCY_CONFLICT", "Publication key was already used.");
         return existing;
       }
+      const payload = await this.publicationReady(s, a);
       if (
         production(s, a.productionId).state !== "LISTO" &&
         production(s, a.productionId).state !== "PROGRAMADO"
@@ -1773,7 +2022,25 @@ export class Operations {
         return p;
       }
       const a = artifact(s, p.package, "PUBLICATION_PACKAGE");
-      await this.publicationReady(s, a);
+      const scheduled = s.events.find(
+        (e) =>
+          e.type === "publication.scheduled" && e.details.publicationId === id,
+      );
+      if (!scheduled || new Date(receipt.publishedAt) < new Date(scheduled.at))
+        fail(
+          "INVALID_RECEIPT",
+          "Publication receipt predates the reviewed scheduling intent.",
+        );
+      if (
+        !["PROGRAMADO", "PUBLICADO"].includes(
+          production(s, p.productionId).state,
+        )
+      )
+        fail(
+          "INVALID_STATE",
+          "Advance the reviewed production to PROGRAMADO before recording its receipt.",
+        );
+      await this.publicationReady(s, a, new Date(receipt.publishedAt), true);
       const hosts: Record<Platform, string[]> = {
         TIKTOK: ["tiktok.com"],
         INSTAGRAM: ["instagram.com"],
@@ -1823,6 +2090,7 @@ export class Operations {
       !Number.isFinite(input.windowHours) ||
       input.windowHours < 0 ||
       !input.metrics.length ||
+      new Set(input.metrics.map((m) => m.name)).size !== input.metrics.length ||
       input.metrics.some(
         (m) =>
           !m.name.trim() ||
@@ -1845,6 +2113,15 @@ export class Operations {
       if (!p) fail("NOT_FOUND", "Metrics require a confirmed publication.");
       if (new Date(input.capturedAt) < new Date(p.publishedAt!))
         fail("INVALID_METRICS", "Capture predates publication.");
+      if (
+        input.windowHours >
+        (Date.parse(input.capturedAt) - Date.parse(p.publishedAt!)) / 3600000 +
+          1 / 60
+      )
+        fail(
+          "INVALID_METRICS",
+          "The measurement window exceeds the elapsed publication time.",
+        );
       const snapshot = { ...input, snapshotId: `metric_${randomUUID()}` };
       s.metrics.push(snapshot);
       record(s, "metrics.captured", p.productionId, actor, this.clock(), {

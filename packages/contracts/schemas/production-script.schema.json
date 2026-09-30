@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://automotive.example.invalid/production-script/1.0.0",
-  "title": "production-script@1.0.0",
+  "$id": "https://automotive.example.invalid/production-script/1.1.0",
+  "title": "production-script@1.1.0",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -142,7 +142,10 @@
             "minLength": 1
           },
           "url": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uri",
             "pattern": "^https://"
           },

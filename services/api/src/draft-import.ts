@@ -5,6 +5,7 @@ import {
 import type { ProductionScript } from "@automotive/contracts";
 import type { Operations } from "./engine.js";
 import type { Actor, Artifact } from "./store.js";
+import { digest } from "./engine.js";
 export async function importValidatedDraft(
   ops: Operations,
   actor: Actor,
@@ -88,8 +89,8 @@ export async function importValidatedDraft(
     })),
     sources: sources.map((s) => ({
       id: s.source_id ?? s.sourceId,
-      title: s.title,
-      url: s.url ?? s.reference,
+      title: s.title ?? s.description,
+      url: s.url ?? s.reference ?? null,
       retrievedAt:
         s.retrievedAt ?? s.captured_at ?? `${s.retrieved_on}T00:00:00Z`,
     })),
@@ -106,13 +107,18 @@ export async function importValidatedDraft(
     ...(promo ? source.offer_context.source_ids : []),
     ...script.scenes.flatMap((scene) => scene.sourceRefs),
   ]);
-  script.sources = [
-    ...new Map(
-      script.sources
-        .filter((source) => sourceIds.has(source.id))
-        .map((source) => [source.id, source]),
-    ).values(),
-  ];
+  const uniqueSources = new Map<string, ProductionScript["sources"][number]>();
+  for (const source of script.sources) {
+    const previous = uniqueSources.get(source.id);
+    if (previous && digest(previous) !== digest(source))
+      throw new Error(
+        "A source identifier has conflicting records; resolve it before draft import.",
+      );
+    uniqueSources.set(source.id, source);
+  }
+  script.sources = [...uniqueSources.values()].filter((source) =>
+    sourceIds.has(source.id),
+  );
   const final = script.scenes.at(-1)!;
   final.narration +=
     " " +

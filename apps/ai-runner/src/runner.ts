@@ -49,6 +49,7 @@ function assertWorkflowSemantics(workflowId: string, input: Record<string, any>,
     if (output.production_id !== input.production_id || (output.base_artifact.artifactId !== input.base_artifact.artifactId || output.base_artifact.version !== input.base_artifact.version) || output.locked_facts_hash !== input.locked_facts_hash) errors.push("Revision must preserve the exact base artifact and locked facts hash");
     const known = new Set(input.base_script.scenes.map((scene: {id:string}) => scene.id));
     const changed = new Set<string>();
+    if (output.scene_order && (output.scene_order.length !== known.size || output.scene_order.some((id:string) => !known.has(id)) || output.scene_order.at(-1) !== input.base_script.scenes.at(-1).id)) errors.push("Revision order must preserve every scene and retain the closing last");
     for (const change of output.changes as Array<{sceneId:string;narration?:string;visual?:string;onScreen?:string}>) {
       if (!known.has(change.sceneId) || changed.has(change.sceneId)) errors.push("Revision references an unknown or duplicate scene");
       changed.add(change.sceneId);

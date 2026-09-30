@@ -12,6 +12,8 @@ Review account/platform, package version/hash, file, caption, disclosure, curren
 
 Do not mark PUBLICADO from local intent. Resolve on the intended platform after authorization; record the confirmed remote ID/URL/time. If a post may already exist, reconcile it first. A failed export does not authorize a duplicate post.
 
+A delayed receipt must attest a time after local intent and valid exact-version reviews/evidence at that time. Later expiry does not erase history; it blocks fresh exports. Do not backdate an unapproved upload to bypass a gate. This adapter does not verify platform activity.
+
 ## Preserve
 
 Packages, approvals, local intent and any remote receipt evidence.

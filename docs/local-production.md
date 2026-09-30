@@ -8,7 +8,7 @@ Local runtime state and originals are ignored files. GitHub distributes definiti
 
 ## Requirements and start
 
-Node.js 20+, pnpm 9.15.9, FFmpeg/ffprobe with libx264 and libass, and optional Docker Compose. These commands are for the technical operator only.
+Node.js 24 LTS, pnpm 9.15.9, FFmpeg/ffprobe with libx264 and libass, and optional Docker Compose. These commands are for the technical operator only.
 
 ```bash
 pnpm install --frozen-lockfile
@@ -16,6 +16,8 @@ pnpm test
 pnpm operations -- status
 pnpm operations:serve
 ```
+
+Use `.nvmrc` with your existing Node version manager or the Node 24 operations container; this repository does not automatically replace the machine’s global runtime.
 
 The server binds `127.0.0.1:4318`. The CLI defaults to `.local/operations/` under the directory where pnpm was invoked. `--storage` selects a separate local store. Set an absolute `OPS_STORAGE` when sharing the server and CLI. `OPS_SOURCE_COMMIT` defaults to the current Git commit and must identify reviewed, committed definitions for an official run. Uncommitted development builds are tests, not approved production provenance.
 
@@ -32,8 +34,8 @@ Every mutation takes a JSON input file via `--input`. JSON is an internal operat
 | `create` | Production ID, vehicle ID, title, `PROMO` or `VOICE_OVER`, target platforms; starts `BORRADOR` |
 | `import-draft` | Exact production/artifact ID, registered workflow ID/version, original input and output; revalidates and retains source evidence without approvals |
 | `bind-facts` | Exact script reference; verifies selected value/unit/source correspondence and creates a version bound to reviewed canonical fact/source hashes |
-| `script` | A normalized `production-script@1.0.0` candidate; new versions preserve the earlier version |
-| `adapt` | Exact `artifact` reference plus scene `changes`; creative fields only, renewed human gates |
+| `script` | A normalized `production-script@1.1.0` candidate; new versions preserve the earlier version |
+| `adapt` | Exact `artifact` reference plus scene `changes` and optional `sceneOrder`; creative fields only, renewed human gates |
 | `approve` | Exact artifact reference, approval type, decision, notes, optional expiry |
 | `transition` | Production ID and the next documented `to` state; checks evidence and rejects skipped steps |
 | `document` | Exact artifact reference; produces the existing Spanish four-column Word layout for a script or shooting plan |
@@ -53,20 +55,13 @@ Every mutation takes a JSON input file via `--input`. JSON is an internal operat
 
 Review canonical facts using `inventory preview-facts` and `verify-facts` as described in `inventory-import.md`. Bind the selected facts before factual approval. A changed/stale fact, source, canonical vehicle identity or unavailable stock blocks reuse. New canonical bindings create new script versions retaining the complete reviewed fact/source snapshot, so later inventory changes do not erase historical verification evidence.
 
-Examples (copy templates into `.local/` and replace fictional IDs with canonical IDs from an approved inventory import):
+Templates are input examples, not a complete executable production. Copy them into ignored `.local/`, replace all fictional references and use the version actually returned by each operation. `bind-facts` creates a new version; the original template version is then insufficient.
 
-```bash
-pnpm inventory -- preview --file data/fixtures/honda-inventory.csv
-# Apply only its reviewed preview/hash; select a resulting canonical vehicle ID.
-pnpm operations -- create --input .local/review/production.json
-pnpm operations -- script --input .local/review/script.json
-pnpm operations -- bind-facts --input .local/review/script-reference.json
-pnpm operations -- approve --input .local/review/factual-approval.json
-pnpm operations -- enqueue --input templates/production/fictional-enqueue.json
-pnpm operations -- work-once
-```
+The complete order is: preview/apply inventory → create production → research and human canonical fact/source review → import/register candidate → bind facts → factual/creative/applicable commercial reviews → approved shooting plan → recorded material → approved render plan → rendered/manual master and creative/technical/rights reviews → reviewed clips if useful → reviewed platform package and publication approval → export/manual intent → authorized upload → attested receipt → measurements. Apply every intermediate state in the domain state machine; the whole sequence is exercised in `services/api/test/full-local-flow.test.ts`.
 
-The latter commands require actual creative/factual approval; this sequence is not permission to treat the fixture as real evidence. Do not approve boilerplate automatically. Use typed approvals `FACTUAL`, `CREATIVE`, `COMMERCIAL`, `RIGHTS`, `TECHNICAL`, `PUBLICATION` for their applicable artifacts. Reject decisions remain in history. Artifact status reflects recorded decisions; validity/lineage gates are always rechecked when operating.
+Use the existing primary SCRIPT identifier for revisions. Adaptation accepts creative text and an optional complete `sceneOrder`, keeps the closing last and recalculates timings while preserving each scene duration. Shortening duration requires an operator-prepared candidate with renewed reviews. No-op revisions fail.
+
+Use typed approvals `FACTUAL`, `CREATIVE`, `COMMERCIAL`, `RIGHTS`, `TECHNICAL`, `PUBLICATION` for their applicable artifacts. Individual reviews may be recorded before a draft is complete; final approval cannot make a script official while placeholders, missing terms or stale evidence remain. Reject decisions stay in history. Commercial reuse requires canonical stock `AVAILABLE`, not unknown/reserved/sold inventory.
 
 `import-draft` automatically converts the two presenter draft formats. For the technical `draft-vehicle-script` contract, use an operator-prepared normalized script with its complete sources and required presenter closing; that older contract lacks source records and a contact destination. Do not invent missing sources during conversion.
 
@@ -84,23 +79,25 @@ Use the same source-linked draft/review gates. Prepare a `VOICE_OVER` production
 
 Approved on-screen scene copy is burned from the exact script, including promotional validity, independently of optional narration subtitles. Copy is passed through literal text files rather than interpreted as filter expressions. Voice-over length must match the edit; adjust timings or explicitly trim silence before intake instead of silently cutting the closing.
 
+`GRABADO` requires an approved shooting plan, at least one visual asset and usable source narration or a separate audio asset. Render-plan submission checks selected streams and subtitle cue ordering/content immediately. Manual masters must actually be MP4 with one H.264/yuv420p video stream, one AAC audio stream, 1080×1920 and matching duration; metadata alone is insufficient.
+
 For both paths, the renderer fits rather than silently crops source frames, preserves originals, and checks resolution, audio and duration. Technical checks do not prove that the narration matches the script or that rights/consents are valid; the operator listens/watches and records those reviews.
 
 ## Clips and publication handoff
 
-`propose-clips@1.0.0` produces a plan candidate from the exact script/master timing. Review actual audio and whether each idea stands alone. Mark pickups as needed rather than extracting a misleading fragment. `extract-clips@1.0.0` accepts one to six unique operator-confirmed intervals of 15–35 seconds. Every derived clip has its own rights/technical/creative reviews.
+`propose-clips@1.1.0` produces a plan candidate from the exact script/master timing. Review actual audio and whether each idea stands alone. Mark pickups as needed rather than extracting a misleading fragment. `extract-clips@1.0.0` accepts one to six unique operator-confirmed intervals of 15–35 seconds. Every derived clip has its own rights/technical/creative reviews. Parent master and render-plan reviews remain release prerequisites. Pickups are a separately reviewed recording/edit, not an automated extraction capability.
 
-`generate-captions@1.0.0` prepares platform-specific Spanish copy from the approved script; the operator may also supply reviewed copy directly. Enqueue `prepare-publication-package@1.0.0` with the exact master/clip version, platform, account reference, caption/hashtags, disclosure, optional schedule and rights confirmation. Conservative pilot caption limits are configuration choices, not claims about every platform's current limit. Check current platform rules before the trial.
+`generate-captions@1.1.0` prepares platform-specific Spanish copy from the approved script; the operator may also supply reviewed copy directly. Enqueue `prepare-publication-package@1.0.0` with the exact master/clip version, platform, account reference, caption/hashtags, disclosure, optional schedule and rights confirmation. Conservative pilot caption limits are configuration choices, not claims about every platform's current limit. Check current platform rules before the trial.
 
 Approve the exact package for publication. Export the package, move the production to `LISTO` after the media gates, and record `schedule` before `PROGRAMADO`. These local records do not create a remote scheduled post. At the explicitly authorized trial, the operator uploads through the intended account, verifies preview/visibility/disclosure, then records the remote receipt. `PUBLICADO` requires receipts for all scheduled records; `MEDIDO` requires snapshots for each one. Repeating a publication key returns the original record; a conflicting receipt is rejected.
 
-Commercial offers must remain unexpired and be confirmed on publication day, using UTC in the local adapter. Do not use a future confirmation. Changes or refreshed confirmations create a new script version and require new reviews of its media/package lineage. Previously published records and snapshots remain available as historical evidence.
+Commercial offers must remain unexpired and be confirmed on publication day, using UTC in the local adapter. Do not use a future confirmation. Changes or refreshed confirmations create a new script version and require new reviews of its media/package lineage. Previously published records and snapshots remain available as historical evidence. A delayed receipt is checked at its attested actual publication time, after the scheduling intent, using retained sources and reviews then valid. This records history and never renews an expired export or authorizes another upload. Receipts are operator attestations, not provider verification. Metrics reject duplicate names and windows longer than elapsed time. `PROGRAMADO` rechecks current gates; rejected transitions retain state and a typed audit event.
 
 ## Presenter bridge
 
 On the same operator-controlled machine, fixed local routes are available for the skills:
 
-- `POST /presenter/adapt`: `artifact` and creative `changes`.
+- `POST /presenter/adapt`: `artifact`, creative `changes` and optional `sceneOrder`.
 - `POST /presenter/approve-creative`: `artifact`, decision and notes; never factual/commercial approval.
 - `POST /presenter/request-shooting-plan`: production, approved `script` reference, artifact ID and idempotency key.
 - `POST /presenter/ingest`: production, original path accessible to the bridge, and declared rights evidence.
@@ -112,10 +109,10 @@ Operator mutations use `POST /operations/<registered-command>`; `/worker/tick` a
 
 ## Reliability and preservation
 
-Jobs use persistent request hashes, idempotency keys, owner-bound expiring tokens, heartbeats, bounded retries/backoff and dead-letter status. A stale worker cannot complete a newer lease. Immutable parent references ensure an approved replacement script/plan/master version invalidates dependent preparation approvals. Definition fingerprints reject unreviewed drift; source-tree review still supplies trust.
+Jobs use persistent request hashes, idempotency keys, owner-bound expiring tokens, heartbeats, bounded retries/backoff and dead-letter status. A stale worker cannot complete a newer lease. Persisted request hashes prevent a caller from substituting another payload. Render attempts use lease-specific output directories so partial files cannot block replay. Polling is serialized within one Operations instance; avoid overlapping separately launched worker processes. Immutable parent references ensure an approved replacement script/plan/master version invalidates dependent preparation approvals. Definition fingerprints reject unreviewed drift; source-tree review still supplies trust.
 
 Back up before irreplaceable material enters the pilot, and copy the verified backup to separately managed storage. This implementation creates a local consistent snapshot; it does not provision off-device backups, cloud versioning or a retention policy. Restore refuses nonempty targets and mismatched hashes. See the runbooks for safe recovery.
 
 ## Trial boundary
 
-Component/contract tests and synthetic media checks are safe local verification. The complete production trial has not been run. Resume using `docs/e2e-readiness.md`: select a case, provide its real source/rights/commercial information and account destination, approve the trial, then follow the supervised flow through a manually confirmed publication. AWS and unattended/API publishing remain separately gated.
+Contract/component tests and both complete synthetic flows are safe local verification. The complete real production trial has not been run. The generated 20-second media does not establish real narration quality or 120–150-second performance. Resume using `docs/e2e-readiness.md`: select a case, provide its real source/rights/commercial information and account destination, approve the trial, then follow the supervised flow through a manually confirmed publication. AWS and unattended/API publishing remain separately gated.

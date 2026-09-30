@@ -154,10 +154,11 @@ test("publication export requires exact package approval and does not publish or
       publicationId: string;
     };
     assert.equal(first.publicationId, repeated.publicationId);
+    await c.ops.transition(operator, "prd_fixture", "PROGRAMADO");
     const receipt = {
       remoteId: "fixture_remote_123",
       url: "https://www.tiktok.com/@fixture/video/123",
-      publishedAt: "2026-09-30T15:59:00Z",
+      publishedAt: "2026-09-30T16:00:00Z",
     };
     await assert.rejects(
       c.ops.recordPublication(operator, first.publicationId, {
@@ -258,6 +259,21 @@ test("render plans reject unsupported caption text, another vehicle's assets and
   try {
     const state = await c.ops.store.read(),
       assetId = state.assets[0].assetId;
+    const voicePath = join(c.root, "voice.wav");
+    await runMediaTool("ffmpeg", [
+      "-nostdin",
+      "-v",
+      "error",
+      "-i",
+      source,
+      "-vn",
+      voicePath,
+    ]);
+    const voice = await c.ops.ingest(operator, "prd_fixture", voicePath, {
+      origin: "Synthetic extracted audio",
+      licenseOrConsent: "Fixture signals only",
+      confirmedBy: "fixture_operator",
+    });
     const plan = {
       scriptId: c.script.artifactId,
       scriptVersion: c.script.version,
@@ -266,7 +282,7 @@ test("render plans reject unsupported caption text, another vehicle's assets and
         { assetId, start: 1, end: 2, sceneId: "close" },
       ],
       audioMode: "VOICE_OVER" as const,
-      voiceoverAssetId: assetId,
+      voiceoverAssetId: voice.assetId,
       subtitles: [],
       burnSubtitles: false,
     };
@@ -300,6 +316,59 @@ test("render plans reject unsupported caption text, another vehicle's assets and
         ],
       }),
       /missing media/,
+    );
+  } finally {
+    await c.cleanup();
+  }
+});
+
+test("publication intents recheck media integrity and reject contradictory metric windows", async () => {
+  const c = await ready();
+  try {
+    const p = await packet(c);
+    await c.ops.approve(operator, p, "PUBLICATION", "APPROVED", "Fixture");
+    const pub = (await c.ops.schedule(operator, p, "publication_fixture")) as {
+      publicationId: string;
+    };
+    await c.ops.transition(operator, "prd_fixture", "PROGRAMADO");
+    await assert.rejects(
+      c.ops.recordPublication(operator, pub.publicationId, {
+        remoteId: "fixture",
+        url: "https://tiktok.com/@fixture/video/1",
+        publishedAt: "2026-09-30T15:00:00Z",
+      }),
+      /predates/,
+    );
+    await c.ops.recordPublication(operator, pub.publicationId, {
+      remoteId: "fixture",
+      url: "https://tiktok.com/@fixture/video/1",
+      publishedAt: "2026-09-30T16:00:00Z",
+    });
+    await assert.rejects(
+      c.ops.metrics(operator, {
+        publicationId: pub.publicationId,
+        capturedAt: "2026-09-30T16:00:00Z",
+        windowHours: 24,
+        metrics: [
+          { name: "views", definition: "Fixture", value: 1, denominator: null },
+        ],
+      }),
+      /exceeds/,
+    );
+    const state = await c.ops.store.read();
+    const asset = (
+      state.artifacts.find((a) => a.kind === "MASTER")!.payload as any
+    ).asset;
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(asset.path, "Changed media");
+    await assert.rejects(c.ops.exportPackage(operator, p), /no longer matches/);
+    assert.equal(
+      (
+        (await c.ops.schedule(operator, p, "publication_fixture")) as {
+          publicationId: string;
+        }
+      ).publicationId,
+      pub.publicationId,
     );
   } finally {
     await c.cleanup();

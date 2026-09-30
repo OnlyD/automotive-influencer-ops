@@ -1,15 +1,15 @@
 {
   "name": "automotive-operator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "English-language technical workflows for the automotive content operator.",
   "author": {
-    "name": "Local developer"
+    "name": "Automotive Content Ops"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Automotive Operator",
     "shortDescription": "Technical workflows for the project operator.",
-    "longDescription": "Operator tools for maintaining and extending the automotive content operation.",
+    "longDescription": "Operator tools for maintaining the system, researching vehicles, preparing inventory, and reviewing content workflows.",
     "developerName": "Automotive Content Ops",
     "category": "Productivity",
     "capabilities": [],

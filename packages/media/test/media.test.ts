@@ -12,6 +12,7 @@ import {
   runMediaTool,
   subtitlesSrt,
   probeMedia,
+  validateMasterMedia,
 } from "../src/index.js";
 const rights = {
   origin: "Generated test signals",
@@ -128,6 +129,7 @@ test("source-audio and voice-over renderers produce playable vertical H.264/AAC 
     assert.equal(source.height, 1920);
     assert.equal(source.hasAudio, true);
     assert.ok(Math.abs(source.duration - 1) < 0.15);
+    await validateMasterMedia(f.root, source, 1);
     const off = await renderVideo(
       f.root,
       {
@@ -173,6 +175,44 @@ test("source-audio and voice-over renderers produce playable vertical H.264/AAC 
     );
   } finally {
     await f.clean();
+  }
+});
+
+test("manual publication masters reject incompatible containers and codecs", async () => {
+  const root = await mkdtemp(join(tmpdir(), "automotive-master-qa-"));
+  try {
+    for (const [extension, codec] of [
+      ["mov", "libx264"],
+      ["mp4", "mpeg4"],
+    ]) {
+      const path = join(root, `invalid.${extension}`);
+      await runMediaTool("ffmpeg", [
+        "-nostdin",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=blue:s=1080x1920:r=30",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=220:sample_rate=48000",
+        "-t",
+        "1",
+        "-threads",
+        "2",
+        "-c:v",
+        codec,
+        "-c:a",
+        "aac",
+        path,
+      ]);
+      const asset = await ingestMedia(root, path, rights);
+      await assert.rejects(validateMasterMedia(root, asset, 1), /H.264/);
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
 });
 test("subtitle and identifier checks reject traversal, invalid timing and unresolved markers", () => {

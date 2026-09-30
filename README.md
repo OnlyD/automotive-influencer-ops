@@ -8,6 +8,7 @@ The supervised local machinery supports promotional and voice-over pilots throug
 
 Read [`docs/propuesta-tecnica.md`](docs/propuesta-tecnica.md) in full before implementation. The existing repository name and remote remain unchanged.
 
+- [Self-audit and supported trial boundary](docs/self-audit.md)
 - [Repository audit and A/B checklist](docs/repository-status.md)
 - [Local production commands and presenter bridge](docs/local-production.md)
 - [Trial readiness and exact resumption](docs/e2e-readiness.md)
@@ -19,7 +20,7 @@ Technical files and operator interfaces are English. Every presenter interaction
 
 ## Development
 
-Requirements: Node.js 20+, pnpm 9.15.9, FFmpeg/ffprobe with libx264/libass and fonts. Docker Compose is optional for n8n.
+Requirements: Node.js 24 LTS, pnpm 9.15.9, FFmpeg/ffprobe with libx264/libass and fonts. Docker Compose is optional for n8n.
 
 ```bash
 pnpm install --frozen-lockfile

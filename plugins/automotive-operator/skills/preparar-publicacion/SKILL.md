@@ -5,7 +5,7 @@ description: Prepare a platform-specific publication candidate from the exact re
 
 # Prepare a publication package
 
-Use English. Resolve the exact approved master/clip, current canonical facts, commercial validity, rights evidence and creative/technical reviews. Use `docs/local-production.md` and the registered `generate-captions@1.0.0` candidate contract for Spanish audience copy, or accept copy explicitly reviewed by the operator.
+Use English. Resolve the exact approved master/clip, current canonical facts, commercial validity, rights evidence and creative/technical reviews. Use `docs/local-production.md` and the registered `generate-captions@1.1.0` candidate contract for Spanish audience copy, or accept copy explicitly reviewed by the operator.
 
 Ask for the intended platform/account and actual contact destination only when missing. Never invent handles, accounts, commercial terms or claims. Check current official platform rules; pilot caption limits are conservative local settings. Retain source links and supply the actual required relationship disclosure.
 

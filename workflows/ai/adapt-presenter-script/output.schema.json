@@ -56,7 +56,7 @@
           "sceneId"
         ]
       },
-      "minItems": 1
+      "minItems": 0
     },
     "warnings": {
       "type": "array",
@@ -68,6 +68,15 @@
     },
     "approval_required": {
       "const": true
+    },
+    "scene_order": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+      }
     }
   },
   "required": [
@@ -77,5 +86,23 @@
     "changes",
     "warnings",
     "approval_required"
+  ],
+  "anyOf": [
+    {
+      "properties": {
+        "changes": {
+          "minItems": 1,
+          "type": "array"
+        }
+      }
+    },
+    {
+      "required": [
+        "scene_order"
+      ],
+      "properties": {
+        "scene_order": {}
+      }
+    }
   ]
 }

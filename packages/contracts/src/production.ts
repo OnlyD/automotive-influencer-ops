@@ -27,7 +27,7 @@ export interface ProductionScript {
   sources: Array<{
     id: string;
     title: string;
-    url: string;
+    url: string | null;
     retrievedAt: string;
   }>;
   commercial: null | {

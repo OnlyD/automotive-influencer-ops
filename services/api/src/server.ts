@@ -53,6 +53,7 @@ export function createLocalServer(ops: Operations) {
           artifactId: documentPath[1],
           version: Number(documentPath[2]),
         });
+        const document = await presenterDocument(a);
         res.setHeader(
           "Content-Type",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -61,7 +62,7 @@ export function createLocalServer(ops: Operations) {
           "Content-Disposition",
           `attachment; filename="${a.artifactId}-${a.version}.docx"`,
         );
-        res.end(await presenterDocument(a));
+        res.end(document);
         return;
       }
       if (req.method !== "POST") {
@@ -80,7 +81,12 @@ export function createLocalServer(ops: Operations) {
         };
         let result: unknown;
         if (presenterAction === "adapt")
-          result = await ops.adapt(actor, body.artifact, body.changes);
+          result = await ops.adapt(
+            actor,
+            body.artifact,
+            body.changes,
+            body.sceneOrder,
+          );
         else if (presenterAction === "approve-creative")
           result = await ops.approve(
             actor,
@@ -170,15 +176,15 @@ export function createLocalServer(ops: Operations) {
   });
 }
 async function readBody(req: IncomingMessage): Promise<Record<string, any>> {
-  let content = "",
-    size = 0;
+  const chunks: Buffer[] = [];
+  let size = 0;
   for await (const chunk of req) {
     size += chunk.length;
     if (size > 1_000_000)
       throw new OperationError("INPUT_TOO_LARGE", "Maximum request is 1 MB.");
-    content += chunk.toString();
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
-  const value = JSON.parse(content || "{}");
+  const value = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
   if (!value || Array.isArray(value) || typeof value !== "object")
     throw new OperationError("INVALID_INPUT", "Expected an object.");
   return value;

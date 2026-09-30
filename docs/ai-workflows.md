@@ -27,7 +27,7 @@ Tests use a fake CLI executable and make no model calls. Live invocation require
 
 ## Production candidates and deterministic work
 
-`adapt-presenter-script@1.0.0` proposes creative changes over an exact normalized script version and locked metadata hash. `propose-clips@1.0.0` proposes complete intervals with pickup warnings; `generate-captions@1.0.0` drafts platform-specific Spanish copy; `analyze-performance@1.0.0` references immutable metric snapshots with their definitions and windows. All remain human-reviewed candidates. Changing a referenced hash, scene, platform or evidence ID fails validation.
+`adapt-presenter-script@1.1.0` proposes creative changes over an exact normalized script version and locked metadata hash. `propose-clips@1.1.0` proposes complete intervals with pickup warnings; `generate-captions@1.1.0` drafts platform-specific Spanish copy; `analyze-performance@1.0.0` references immutable metric snapshots with their definitions and windows. All remain human-reviewed candidates. Changing a referenced hash, scene, platform or evidence ID fails validation.
 
 `workflows/approved-workflows.json` fingerprints the registered prompts, manifests and schemas. A locally modified definition is rejected until a reviewed technical change updates its version and fingerprint. Source-tree control is still the trust boundary.
 

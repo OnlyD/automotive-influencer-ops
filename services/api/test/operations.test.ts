@@ -269,13 +269,32 @@ test("placeholders and missing factual approval block preparation without advanc
   try {
     const script = structuredClone(fixture);
     script.scenes[0].narration = "[DATO POR CONFIRMAR]";
-    const a = await approveScript(c.ops, script);
+    const a = await c.ops.saveScript(
+      operator,
+      "prd_fixture",
+      "script_fixture",
+      script,
+    );
+    await c.ops.approve(
+      operator,
+      a,
+      "FACTUAL",
+      "APPROVED",
+      "Fictional fact review",
+    );
+    await assert.rejects(
+      c.ops.approve(presenter, a, "CREATIVE", "APPROVED", "Fixture"),
+      /placeholders/,
+    );
     await c.ops.enqueue(operator, {
       workflowId: "create-shooting-plan",
       workflowVersion: "1.0.0",
       productionId: "prd_fixture",
       idempotencyKey: "placeholder",
-      input: { script: a, artifactId: "shoot_fixture" },
+      input: {
+        script: { artifactId: a.artifactId, version: a.version },
+        artifactId: "shoot_fixture",
+      },
     });
     await assert.rejects(c.ops.cycle(), /placeholder/);
     await assert.rejects(
@@ -486,6 +505,240 @@ test("backup and restore preserve exact state and reject overwrite or corrupted 
     await assert.rejects(restoreStore(c.ops.store, backup), /hash mismatch/);
   } finally {
     await rm(backup, { recursive: true, force: true });
+    await c.cleanup();
+  }
+});
+
+test("scene reordering preserves durations, facts, the closing and the actual revision base", async () => {
+  const c = await context();
+  try {
+    const script = structuredClone(fixture);
+    script.scenes[0].end = 0.5;
+    script.scenes.splice(1, 0, {
+      ...structuredClone(script.scenes[0]),
+      id: "context",
+      start: 0.5,
+      end: 1,
+      narration: "Detalle ficticio.",
+    });
+    const base = await approveScript(c.ops, script);
+    await c.ops.saveScript(operator, "prd_fixture", base.artifactId, script);
+    const reordered = await c.ops.adapt(
+      presenter,
+      base,
+      [],
+      ["context", "hook", "close"],
+    );
+    const output = reordered.artifact.payload as typeof fixture;
+    assert.deepEqual(
+      output.scenes.map((s) => s.id),
+      ["context", "hook", "close"],
+    );
+    assert.deepEqual(
+      output.scenes.map((s) => [s.start, s.end]),
+      [
+        [0, 0.5],
+        [0.5, 1],
+        [1, 2],
+      ],
+    );
+    assert.equal(reordered.artifact.parentVersion, base.version);
+    assert.equal(reordered.artifact.version, 3);
+    assert.equal(reordered.artifact.provenance.workflowVersion, "1.1.0");
+    assert.equal(reordered.technicalReviewRequired, true);
+    assert.deepEqual(output.facts, script.facts);
+    await assert.rejects(
+      c.ops.adapt(presenter, base, [], ["hook", "close", "context"]),
+      /closing last/,
+    );
+    await assert.rejects(
+      c.ops.adapt(presenter, base, [], ["hook", "hook", "close"]),
+      /every original scene/,
+    );
+    await assert.rejects(
+      c.ops.adapt(presenter, base, []),
+      /unique scene changes/,
+    );
+  } finally {
+    await c.cleanup();
+  }
+});
+
+test("confirmed promotional drafts retain dealer confirmation descriptions even without a public URL", async () => {
+  const c = await context("PROMO");
+  try {
+    const examples = fileURLToPath(
+      new URL(
+        "../../../workflows/ai/draft-promotional-script/examples/",
+        import.meta.url,
+      ),
+    );
+    const input = JSON.parse(
+      await readFile(join(examples, "fictional-input.json"), "utf8"),
+    );
+    const output = JSON.parse(
+      await readFile(join(examples, "fictional-output.json"), "utf8"),
+    );
+    input.production_id = output.production_id = "prd_fixture";
+    input.vehicle.vehicle_id = "veh_fixture";
+    input.closing_cta.contact_method = "el medio de prueba";
+    Object.assign(input.offer_context, {
+      status: "CONFIRMED",
+      price: { amount: 1, currency: "USD" },
+      promotion_text: "Promoción ficticia",
+      availability_text: "Disponibilidad ficticia confirmada",
+      financing_text: "Sin financiamiento real",
+      eligibility_terms: ["Solo para esta prueba"],
+      confirmed_by: "fixture_dealer",
+      confirmed_at: "2026-09-30T15:00:00Z",
+      valid_from: "2026-09-30T15:00:00Z",
+      valid_until: "2026-10-01T23:59:59Z",
+      source_ids: ["src_offer_fixture"],
+      sources: [
+        {
+          source_id: "src_offer_fixture",
+          description: "Fictional dealer confirmation record",
+          captured_at: "2026-09-30T15:00:00Z",
+          reference: null,
+        },
+      ],
+    });
+    const offerScene = output.script.scenes.find(
+      (s: any) => s.type === "promotion",
+    );
+    offerScene.spoken_text =
+      "El precio ficticio de esta unidad es 1 USD. Tenemos Promoción ficticia con Disponibilidad ficticia confirmada. El esquema indica Sin financiamiento real y la condición Solo para esta prueba. Estos textos son ejemplos inventados para revisar el formato y no describen una oferta real.";
+    offerScene.used_offer_fields = [
+      "price",
+      "promotion_text",
+      "availability_text",
+      "financing_text",
+      "eligibility_terms",
+    ];
+    offerScene.source_refs = ["src_offer_fixture"];
+    const closing = output.script.scenes.at(-1);
+    closing.spoken_text =
+      "Oferta válida hasta el 1 de octubre de 2026. Tu próximo camino puede empezar aquí.";
+    closing.on_screen_text = "Válida hasta el 1 de octubre de 2026";
+    output.script.closing_cta.contact_text =
+      "Contáctanos por el medio de prueba.";
+    output.validity_disclosure = {
+      status: "CONFIRMED_UNTIL",
+      valid_until: input.offer_context.valid_until,
+      scene_id: closing.id,
+    };
+    output.placeholders = [];
+    const a = await importValidatedDraft(
+      c.ops,
+      operator,
+      "prd_fixture",
+      "script_fixture",
+      "draft-promotional-script",
+      "1.3.0",
+      input,
+      output,
+    );
+    const script = a.payload as typeof fixture;
+    assert.deepEqual(
+      script.sources.find((s) => s.id === "src_offer_fixture"),
+      {
+        id: "src_offer_fixture",
+        title: "Fictional dealer confirmation record",
+        url: null,
+        retrievedAt: "2026-09-30T15:00:00Z",
+      },
+    );
+    assert.ok(script.commercial);
+    assert.equal((await c.ops.store.read()).approvals.length, 0);
+    assert.ok((await presenterDocument(a)).length > 1000);
+    const clash = structuredClone(input);
+    clash.offer_context.source_ids = ["src_vehicle_fixture"];
+    clash.offer_context.sources[0].source_id = "src_vehicle_fixture";
+    const conflictingOutput = structuredClone(output);
+    conflictingOutput.script.scenes.find(
+      (s: any) => s.type === "promotion",
+    ).source_refs = ["src_vehicle_fixture"];
+    await assert.rejects(
+      importValidatedDraft(
+        c.ops,
+        operator,
+        "prd_fixture",
+        "script_fixture",
+        "draft-promotional-script",
+        "1.3.0",
+        clash,
+        conflictingOutput,
+      ),
+      /conflicting records/,
+    );
+  } finally {
+    await c.cleanup();
+  }
+});
+
+test("presenter API preserves Spanish characters across streamed request chunks", async () => {
+  const c = await context();
+  const server = createLocalServer(c.ops);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const ref = await approveScript(c.ops);
+    const { request } = await import("node:http");
+    const visual = "Grabación cálida: acción y corazón 🚙";
+    const body = Buffer.from(
+      JSON.stringify({ artifact: ref, changes: [{ sceneId: "hook", visual }] }),
+    );
+    const split = body.indexOf(Buffer.from("ó")) + 1;
+    const port = (server.address() as { port: number }).port;
+    const result = await new Promise<any>((resolve, reject) => {
+      const req = request(
+        {
+          hostname: "127.0.0.1",
+          port,
+          path: "/presenter/adapt",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+        (res) => {
+          const chunks: Buffer[] = [];
+          res.on("data", (chunk) => chunks.push(chunk));
+          res.on("end", () =>
+            resolve(JSON.parse(Buffer.concat(chunks).toString())),
+          );
+        },
+      );
+      req.on("error", reject);
+      req.write(body.subarray(0, split));
+      setImmediate(() => req.end(body.subarray(split)));
+    });
+    assert.equal(result.artifact.payload.scenes[0].visual, visual);
+  } finally {
+    server.closeAllConnections();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await c.cleanup();
+  }
+});
+
+test("overlapping local polling does not start a second media job in the same process", async () => {
+  const c = await context();
+  try {
+    const script = await approveScript(c.ops);
+    for (const id of ["first", "second"])
+      await c.ops.enqueue(operator, {
+        workflowId: "create-shooting-plan",
+        workflowVersion: "1.0.0",
+        productionId: "prd_fixture",
+        idempotencyKey: id,
+        input: { script, artifactId: `shoot_${id}` },
+      });
+    const results = await Promise.all([c.ops.cycle(), c.ops.cycle()]);
+    assert.equal(results.filter(Boolean).length, 1);
+    assert.equal(
+      (await c.ops.store.read()).jobs.filter((j) => j.status === "QUEUED")
+        .length,
+      1,
+    );
+    assert.ok(await c.ops.cycle());
+  } finally {
     await c.cleanup();
   }
 });

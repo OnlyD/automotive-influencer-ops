@@ -15,3 +15,5 @@ See [ADR-0010](ADR-0010-presenter-research-stays-in-the-same-conversation.md) fo
 See [ADR-0011](ADR-0011-all-presenter-scripts-include-closing-ctas.md) for required contact and follow/like/comment calls to action in both presenter script types.
 
 See [ADR-0012](ADR-0012-local-production-machinery.md) for the controlled local pilot and [ADR-0013](ADR-0013-deterministic-media-and-manual-publication.md) for media and manual publishing boundaries.
+
+See [ADR-0014](ADR-0014-local-trial-audit.md) for release gates, historical receipts and audit corrections.
