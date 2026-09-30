@@ -1,3 +1,4 @@
+import { assertWorkflowIntegrity } from "./workflow-integrity.js";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -46,6 +47,10 @@ export interface RegisteredWorkflow {
 }
 
 const approvedWorkflows = [
+  { id: "propose-clips", version: "1.0.0" },
+  { id: "generate-captions", version: "1.0.0" },
+  { id: "analyze-performance", version: "1.0.0" },
+  { id: "adapt-presenter-script", version: "1.0.0" },
   { id: "research-vehicle", version: "1.1.0" },
   { id: "validate-vehicle-data", version: "1.0.0" },
   { id: "draft-vehicle-script", version: "1.0.0" },
@@ -82,6 +87,7 @@ export async function loadWorkflowRegistry(workflowRoot = findWorkflowRoot()): P
 
   for (const approved of approvedWorkflows) {
     const directory = resolve(workflowRoot, approved.id);
+    await assertWorkflowIntegrity(directory, resolve(workflowRoot, ".."));
     const manifest = parse(await readFile(resolve(directory, "manifest.yaml"), "utf8")) as unknown;
     if (!isManifest(manifest, approved.id, approved.version)) {
       throw new Error(`Workflow manifest is not approved: ${approved.id}@${approved.version}`);

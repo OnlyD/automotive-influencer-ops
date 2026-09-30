@@ -1,0 +1,53 @@
+{
+  "production_id": "prd_fixture",
+  "base_artifact": {
+    "artifactId": "script_fixture",
+    "version": 1
+  },
+  "base_script": {
+    "title": "Prueba ficticia",
+    "duration": 20,
+    "scenes": [
+      {
+        "id": "scene_fixture",
+        "start": 0,
+        "end": 20,
+        "visual": "Tarjeta de prueba ficticia",
+        "narration": "Este es un ejemplo ficticio. Escríbenos por el medio de prueba. Sigue la cuenta, dale me gusta y comenta.",
+        "onScreen": "Ejemplo ficticio",
+        "factRefs": [
+          "fact_fixture"
+        ],
+        "sourceRefs": [
+          "src_fixture"
+        ],
+        "commercial": false
+      }
+    ],
+    "facts": [
+      {
+        "id": "fact_fixture",
+        "text": "Fictional attribute only",
+        "sourceIds": [
+          "src_fixture"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "src_fixture",
+        "title": "Fictional source",
+        "url": "https://example.invalid/fixture",
+        "retrievedAt": "2026-09-30T00:00:00Z"
+      }
+    ],
+    "commercial": null,
+    "contactMethod": "medio de prueba"
+  },
+  "locked_facts_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "revision_request": {
+    "instruction": "Usa una guía visual más breve.",
+    "preferred_expressions": [],
+    "phrases_to_avoid": []
+  }
+}

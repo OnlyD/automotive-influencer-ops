@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "production_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,95}$"
+    },
+    "snapshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "snapshotId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,95}$"
+          },
+          "publicationId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,95}$"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "TIKTOK",
+              "INSTAGRAM",
+              "YOUTUBE",
+              "FACEBOOK"
+            ]
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "windowHours": {
+            "type": "number",
+            "minimum": 0
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "definition": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "denominator": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "definition",
+                "value",
+                "denominator"
+              ]
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "snapshotId",
+          "publicationId",
+          "platform",
+          "capturedAt",
+          "windowHours",
+          "metrics"
+        ]
+      },
+      "minItems": 1
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "production_id",
+    "snapshots",
+    "question"
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "masterId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+        },
+        "masterVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "TIKTOK",
+            "INSTAGRAM",
+            "YOUTUBE",
+            "FACEBOOK"
+          ]
+        },
+        "accountRef": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hashtags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^#[^\\s#]+$"
+          },
+          "minItems": 0
+        },
+        "disclosure": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scheduledAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "relatedContentUrl": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rightsConfirmed": {
+          "const": true
+        }
+      },
+      "required": [
+        "masterId",
+        "masterVersion",
+        "platform",
+        "accountRef",
+        "caption",
+        "hashtags",
+        "disclosure",
+        "scheduledAt",
+        "relatedContentUrl",
+        "rightsConfirmed"
+      ]
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    }
+  },
+  "required": [
+    "request",
+    "artifactId"
+  ]
+}

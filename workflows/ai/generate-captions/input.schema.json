@@ -1,0 +1,487 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "production_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "script": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 600
+        },
+        "scenes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+              },
+              "start": {
+                "type": "number",
+                "minimum": 0
+              },
+              "end": {
+                "type": "number",
+                "minimum": 0
+              },
+              "visual": {
+                "type": "string",
+                "minLength": 1
+              },
+              "narration": {
+                "type": "string",
+                "minLength": 1
+              },
+              "onScreen": {
+                "type": "string"
+              },
+              "factRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+                },
+                "minItems": 0
+              },
+              "sourceRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+                },
+                "minItems": 0
+              },
+              "commercial": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "start",
+              "end",
+              "visual",
+              "narration",
+              "onScreen",
+              "factRefs",
+              "sourceRefs",
+              "commercial"
+            ]
+          },
+          "minItems": 1
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+                },
+                "minItems": 1
+              },
+              "canonicalFactHash": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "canonicalValue": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "array",
+                  "object"
+                ]
+              },
+              "canonicalUnit": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "text",
+              "sourceIds"
+            ]
+          },
+          "minItems": 1
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https://"
+              },
+              "retrievedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "url",
+              "retrievedAt"
+            ]
+          },
+          "minItems": 1
+        },
+        "commercial": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "terms": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                },
+                "sourceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+                  },
+                  "minItems": 1
+                },
+                "confirmedBy": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "confirmedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "validUntil": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "terms",
+                "sourceIds",
+                "confirmedBy",
+                "confirmedAt",
+                "validUntil"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contactMethod": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verifiedReferences": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "facts",
+            "sources"
+          ],
+          "properties": {
+            "facts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "vehicleFactId",
+                  "vehicleId",
+                  "field",
+                  "value",
+                  "unit",
+                  "scope",
+                  "verificationStatus",
+                  "sourceIds",
+                  "verifiedAt",
+                  "verifiedBy",
+                  "validUntil",
+                  "notes"
+                ],
+                "properties": {
+                  "vehicleFactId": {
+                    "type": "string",
+                    "pattern": "^fact_[a-zA-Z0-9_-]+$"
+                  },
+                  "vehicleId": {
+                    "type": "string",
+                    "pattern": "^veh_[a-zA-Z0-9_-]+$"
+                  },
+                  "field": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean",
+                      "array",
+                      "object"
+                    ]
+                  },
+                  "unit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "scope": {
+                    "enum": [
+                      "UNIT",
+                      "MODEL_TRIM",
+                      "MODEL_YEAR",
+                      "MARKET"
+                    ]
+                  },
+                  "verificationStatus": {
+                    "enum": [
+                      "UNVERIFIED",
+                      "IN_REVIEW",
+                      "VERIFIED",
+                      "CONFLICTED",
+                      "STALE"
+                    ]
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^src_[a-zA-Z0-9_-]+$"
+                    },
+                    "uniqueItems": true
+                  },
+                  "verifiedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "verifiedBy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "validUntil": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "notes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "verificationStatus": {
+                          "const": "VERIFIED"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "sourceIds": {
+                          "type": "array",
+                          "minItems": 1
+                        },
+                        "verifiedAt": {
+                          "type": "string"
+                        },
+                        "verifiedBy": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "type",
+                  "title",
+                  "publisher",
+                  "url",
+                  "retrievedAt",
+                  "publishedAt",
+                  "contentHash",
+                  "archiveLocation",
+                  "reliabilityTier",
+                  "locale"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "pattern": "^src_[a-zA-Z0-9_-]+$"
+                  },
+                  "type": {
+                    "enum": [
+                      "MANUFACTURER_PAGE",
+                      "VEHICLE_DOCUMENT",
+                      "AUTHORIZED_INVENTORY",
+                      "REGULATORY",
+                      "EDITORIAL",
+                      "TEST_FIXTURE"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "publisher": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "retrievedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "publishedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "contentHash": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^sha256:[a-f0-9]{64}$"
+                  },
+                  "archiveLocation": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "reliabilityTier": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "locale": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2}-[A-Z]{2}$"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "title",
+        "duration",
+        "scenes",
+        "facts",
+        "sources",
+        "commercial",
+        "contactMethod"
+      ]
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "TIKTOK",
+        "INSTAGRAM",
+        "YOUTUBE",
+        "FACEBOOK"
+      ]
+    },
+    "accountRef": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "disclosure": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "editorialRequest": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "production_id",
+    "script",
+    "platform",
+    "accountRef",
+    "disclosure",
+    "editorialRequest"
+  ]
+}

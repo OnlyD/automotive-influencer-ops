@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive.example.invalid/approval/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "approvalId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "productionId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "artifactId",
+        "version"
+      ]
+    },
+    "artifactHash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "FACTUAL",
+        "CREATIVE",
+        "COMMERCIAL",
+        "RIGHTS",
+        "TECHNICAL",
+        "PUBLICATION"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "APPROVED",
+        "REJECTED"
+      ]
+    },
+    "decidedBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "presenter",
+            "technical-operator",
+            "worker"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "role",
+        "name"
+      ]
+    },
+    "decidedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    },
+    "validUntil": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "approvalId",
+    "productionId",
+    "artifact",
+    "artifactHash",
+    "type",
+    "decision",
+    "decidedBy",
+    "decidedAt",
+    "notes",
+    "validUntil"
+  ]
+}

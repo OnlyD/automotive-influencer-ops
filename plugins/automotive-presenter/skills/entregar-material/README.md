@@ -1,3 +1,3 @@
-# Material handoff skill — placeholder
+# Original material intake skill
 
-Prepare a material handoff through the authorized workflow. All interaction with the influencer must always be in Spanish. Implementation pending.
+The supervised local pilot registers copied originals, content hashes, media metadata and declared rights evidence. All presenter interaction is Spanish. Independent remote uploads and signed URLs remain increment F. See `SKILL.md` and `docs/local-production.md`.

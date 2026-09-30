@@ -1,0 +1,29 @@
+{
+  "production_id": "prd_fixture",
+  "master": {
+    "artifactId": "master_fixture",
+    "version": 1
+  },
+  "clips": [
+    {
+      "clipId": "clip_fixture",
+      "start": 0,
+      "end": 20,
+      "purpose": "Fictional complete scene",
+      "hookText": "Ejemplo ficticio",
+      "closingText": "Sigue la cuenta y comenta.",
+      "requiresPickup": false,
+      "factRefs": [
+        "fact_fixture"
+      ],
+      "preferredPlatforms": [
+        "TIKTOK"
+      ]
+    }
+  ],
+  "warnings": [
+    "Fixture contains only one complete scene; do not fill the target count."
+  ],
+  "approval_required": true,
+  "publishable": false
+}

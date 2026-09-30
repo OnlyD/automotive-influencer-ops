@@ -1,29 +1,45 @@
 # automotive-influencer-ops
 
-A repository for the automotive content operation, from verifiable vehicle inventory and script development through approval, publishing, and measurement.
+Source-controlled definitions for vehicle inventory, research, Spanish scripts, reviewed recordings, video processing and publication records.
 
-## Technical specification
+The supervised local machinery supports promotional and voice-over pilots through an approved **manual publication handoff**. The full production trial remains pending. AWS, remote presenter authentication and unattended/API publishing are separate increments; no live accounts or cloud resources are connected.
 
-The current execution specification is [`docs/propuesta-tecnica.md`](docs/propuesta-tecnica.md). It defines the architecture, inventory and content contracts, skills, implementation increments, and pending decisions.
+## Source of truth and status
 
-## Repository status
+Read [`docs/propuesta-tecnica.md`](docs/propuesta-tecnica.md) in full before implementation. The existing repository name and remote remain unchanged.
 
-This repository keeps its existing name and remote. The initial structure follows section 10 of the specification. Placeholder `README.md` files explain each area's purpose and will be replaced or expanded as that area is implemented.
+- [Repository audit and A/B checklist](docs/repository-status.md)
+- [Local production commands and presenter bridge](docs/local-production.md)
+- [Trial readiness and exact resumption](docs/e2e-readiness.md)
+- [AI workflow registry](docs/ai-workflows.md)
+- [Inventory preview/apply and factual review](docs/inventory-import.md)
+- [Architecture](docs/architecture.md) and [technical decisions](docs/decisions/README.md)
 
-Technical files and operator-facing technical work use English. Every interaction and user-facing output for the influencer must always use Spanish, her primary language. The presenter onboarding skill is exclusive to her workflow; the technical operator uses the technical workflows.
+Technical files and operator interfaces are English. Every presenter interaction and audience-facing deliverable is Spanish. Use `actualizar-tecnico` for operator context and `actualizar-influencer` for presenter context; neither authenticates a person.
 
-The `pnpm` workspace and contracts package provide local build, typecheck, and test commands. The inventory package supports fictional CSV preview/apply using a replaceable local JSON repository under ignored `.local/inventory/`. Real inventory, videos, and secrets must never be committed.
+## Development
 
-The initial C-track workflows are versioned under `workflows/ai/` and validated by the local `apps/ai-runner/`. They currently use an injected executor for deterministic testing; no model client or external service is connected. See `docs/ai-workflows.md`.
+Requirements: Node.js 20+, pnpm 9.15.9, FFmpeg/ffprobe with libx264/libass and fonts. Docker Compose is optional for n8n.
 
-The separate promotional script workflow leaves missing same-day dealership terms as visible placeholders in the spoken draft, always states offer validity or `[VIGENCIA POR CONFIRMAR]`, and requires commercial review before recording or publication.
+```bash
+pnpm install --frozen-lockfile
+pnpm format:check
+pnpm test
+pnpm operations -- status
+```
 
-## Local development
+Tests validate contracts, roles, immutable versions, canonical fact/source binding, approvals, leases/retries/idempotency, backup/recovery and synthetic media. No live model or social publication occurs in tests. The optional Codex CLI executor requires an operator-supplied dedicated home; presenter research uses the authorized source tools in her conversation.
 
-Requirements: Node.js 20 or newer and pnpm 9.15.9 (selected by Corepack from `package.json`). Run `pnpm install`, `pnpm build`, `pnpm typecheck`, and `pnpm test` from the repository root.
+## Local workflow
 
-Preview the fictional Honda fixture with `pnpm inventory -- preview --file data/fixtures/honda-inventory.csv`. Apply only after reviewing the preview, using its `importId` and `previewHash`: `pnpm inventory -- apply --file data/fixtures/honda-inventory.csv --preview-id <id> --preview-hash <hash>`. The importer refuses changed source files or inventory snapshots. Use `pnpm inventory -- list --make Honda` to query local vehicles.
+Preview the fictional inventory with `pnpm inventory -- preview --file data/fixtures/honda-inventory.csv`. Apply only the reviewed preview ID/hash. Query canonical records using `pnpm inventory -- list --make Honda`.
 
-## Role entry skills
+Research the exact vehicle, choose a promotional or detailed Spanish Word draft, then let the operator register its candidate, review/verify the selected canonical facts, bind source hashes and record exact-version approvals. The service supports creative adaptation, recording plans, hashed media intake, explicit source-audio/voice-over edits, clips, platform-specific packages and attested remote publication receipts. Follow [the local guide](docs/local-production.md) for the actual command order and gates.
 
-Use `actualizar-influencer` for the presenter's Spanish-only context. It can save new presenter-reviewed defect reports under `docs/feedback/influencer/`, without editing technical artifacts. Use `actualizar-tecnico` for the operator's English technical context. These skills declare a workflow role; they do not verify identity or technically enforce file permissions.
+Start the loopback service with `pnpm operations:serve`, or use [the inactive n8n Compose setup](automation/n8n/README.md). Run `pnpm operations -- work-once` to process one reviewed queued job. Do not enable polling or run the full trial without the operator's decision.
+
+## Operational data
+
+GitHub contains code, contracts, templates, skills, fictional fixtures and workflows. Ignored `.local/inventory/` and `.local/operations/` contain this adapter's runtime state and media. A new clone does not inherit them. Preserve originals and configure an off-device backup before ingesting irreplaceable recordings.
+
+Never commit secrets, real videos or sensitive inventory. Candidate drafts may contain missing commercial placeholders; recording/publication gates reject unresolved placeholders, stale facts and unconfirmed or expired offers. Exporting a package or recording a schedule never publishes content.

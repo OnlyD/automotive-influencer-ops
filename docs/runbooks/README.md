@@ -1,3 +1,5 @@
-# Runbooks — placeholder
+# Operational runbooks
 
-Operational runbooks will be added when the corresponding components are implemented. Write technical runbooks in English. Any instructions shown directly to the influencer must be in Spanish.
+These procedures cover the local pilot adapter. Preserve state, immutable artifacts, original media, approvals and receipts during recovery. Diagnose before replaying work. Never change production status or receipt IDs by editing JSON.
+
+Use `docs/local-production.md` for commands. AWS/remote identity/provider operations require their separate configuration and authorization.

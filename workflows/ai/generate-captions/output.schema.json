@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "production_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "TIKTOK",
+        "INSTAGRAM",
+        "YOUTUBE",
+        "FACEBOOK"
+      ]
+    },
+    "caption": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^#[^\\s#]+$"
+      },
+      "minItems": 0
+    },
+    "disclosure": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "factRefs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+      },
+      "minItems": 0
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "approval_required": {
+      "const": true
+    },
+    "publishable": {
+      "const": false
+    }
+  },
+  "required": [
+    "production_id",
+    "platform",
+    "caption",
+    "hashtags",
+    "disclosure",
+    "factRefs",
+    "warnings",
+    "approval_required",
+    "publishable"
+  ]
+}

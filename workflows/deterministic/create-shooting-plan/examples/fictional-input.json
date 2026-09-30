@@ -1,0 +1,7 @@
+{
+  "script": {
+    "artifactId": "script_fixture",
+    "version": 1
+  },
+  "artifactId": "shoot_fixture"
+}

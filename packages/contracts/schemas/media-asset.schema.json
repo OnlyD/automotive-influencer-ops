@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive.example.invalid/media-asset/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "assetId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2000000000
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "VIDEO",
+        "AUDIO",
+        "IMAGE"
+      ]
+    },
+    "mimeType": {
+      "type": "string",
+      "minLength": 1
+    },
+    "duration": {
+      "type": "number",
+      "minimum": 0
+    },
+    "width": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "height": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "hasAudio": {
+      "type": "boolean"
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "origin": {
+          "type": "string",
+          "minLength": 1
+        },
+        "licenseOrConsent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confirmedBy": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "origin",
+        "licenseOrConsent",
+        "confirmedBy"
+      ]
+    }
+  },
+  "required": [
+    "assetId",
+    "path",
+    "hash",
+    "bytes",
+    "kind",
+    "mimeType",
+    "duration",
+    "width",
+    "height",
+    "hasAudio",
+    "rights"
+  ]
+}

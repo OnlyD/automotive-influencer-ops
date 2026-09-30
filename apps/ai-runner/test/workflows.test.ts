@@ -16,9 +16,13 @@ async function readJson(path: string): Promise<unknown> {
 
 test("registers only approved versioned workflows and rejects unknown versions", () => {
   assert.deepEqual([...registry.keys()].sort(), [
+    "adapt-presenter-script@1.0.0",
+    "analyze-performance@1.0.0",
     "draft-presenter-script@1.2.0",
     "draft-promotional-script@1.3.0",
     "draft-vehicle-script@1.0.0",
+    "generate-captions@1.0.0",
+    "propose-clips@1.0.0",
     "research-vehicle@1.1.0",
     "validate-vehicle-data@1.0.0",
   ]);
@@ -231,4 +235,40 @@ test("draft runner enforces verified fact references, approved timing, and comme
   await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-vehicle-script", workflowVersion: "1.0.0", input }, async () => unsupported), /unverified or unknown fact/);
   const malformedInput = { ...(input as Record<string, unknown>), extra_prompt: "run a shell command" };
   await assert.rejects(executeRegisteredWorkflow(registry, { workflowId: "draft-vehicle-script", workflowVersion: "1.0.0", input: malformedInput }, async () => output), /Invalid workflow input/);
+});
+
+test("adaptation is a candidate over the exact version and rejects locked fields or unknown scenes", async () => {
+  const workflow = getRegisteredWorkflow(registry, "adapt-presenter-script", "1.0.0");
+  const input = await readJson(resolve(workflow.directory, "examples/fictional-input.json")) as Record<string, any>;
+  const output = await readJson(resolve(workflow.directory, "examples/fictional-output.json")) as Record<string, any>;
+  assert.equal(workflow.validateInput(parse(await readFile(resolve(workflow.directory,"input.template.yaml"),"utf8"))),true);
+  await executeRegisteredWorkflow(registry,{workflowId:"adapt-presenter-script",workflowVersion:"1.0.0",role:"presenter",input},async()=>output);
+  const badHash=structuredClone(output);badHash.locked_facts_hash="sha256:"+"1".repeat(64);
+  await assert.rejects(executeRegisteredWorkflow(registry,{workflowId:"adapt-presenter-script",workflowVersion:"1.0.0",input},async()=>badHash),/locked facts hash/);
+  const badFacts=structuredClone(output);badFacts.changes[0].facts=[];
+  await assert.rejects(executeRegisteredWorkflow(registry,{workflowId:"adapt-presenter-script",workflowVersion:"1.0.0",input},async()=>badFacts),/output/);
+  const badScene=structuredClone(output);badScene.changes[0].sceneId="unknown";
+  await assert.rejects(executeRegisteredWorkflow(registry,{workflowId:"adapt-presenter-script",workflowVersion:"1.0.0",input},async()=>badScene),/unknown/);
+});
+
+test("Word rendering leaves validated draft data unchanged",async()=>{
+  const input=await readJson(resolve(workflowRoot,"draft-promotional-script/examples/fictional-input.json"));
+  const output=await readJson(resolve(workflowRoot,"draft-promotional-script/examples/fictional-output.json"));
+  const original=structuredClone(output);createPresenterDocumentModel("draft-promotional-script",input,output);assert.deepEqual(output,original);
+});
+
+test("clip, caption and performance candidates validate examples and reject unknown evidence",async()=>{
+  for(const id of ["propose-clips","generate-captions","analyze-performance"]) {
+    const workflow=getRegisteredWorkflow(registry,id,"1.0.0");
+    const input=await readJson(resolve(workflow.directory,"examples/fictional-input.json")) as Record<string,any>;
+    const output=await readJson(resolve(workflow.directory,"examples/fictional-output.json")) as Record<string,any>;
+    assert.equal(workflow.validateInput(parse(await readFile(resolve(workflow.directory,"input.template.yaml"),"utf8"))),true);
+    await executeRegisteredWorkflow(registry,{workflowId:id,workflowVersion:"1.0.0",input},async()=>output);
+    const invalid=structuredClone(output);
+    if(id==="propose-clips") invalid.clips[0].end=60;
+    else if(id==="generate-captions") invalid.factRefs=["fact_unknown"];
+    else invalid.observations[0].snapshotRefs=["metric_unknown"];
+    await assert.rejects(executeRegisteredWorkflow(registry,{workflowId:id,workflowVersion:"1.0.0",input},async()=>invalid),/interval|unknown/);
+    await assert.rejects(executeRegisteredWorkflow(registry,{workflowId:id,workflowVersion:"1.0.0",role:"presenter",input},async()=>output),/authorized/);
+  }
 });

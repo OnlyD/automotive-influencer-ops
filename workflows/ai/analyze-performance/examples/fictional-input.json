@@ -1,0 +1,21 @@
+{
+  "production_id": "prd_fixture",
+  "snapshots": [
+    {
+      "snapshotId": "metric_fixture",
+      "publicationId": "pub_fixture",
+      "platform": "TIKTOK",
+      "capturedAt": "2026-09-30T16:00:00Z",
+      "windowHours": 1,
+      "metrics": [
+        {
+          "name": "fixture_views",
+          "definition": "Fictional test counter",
+          "value": 1,
+          "denominator": null
+        }
+      ]
+    }
+  ],
+  "question": "Summarize this fictional snapshot and its limits."
+}

@@ -34,6 +34,7 @@ export interface PresenterDocumentModel {
   notice: string;
   placeholderNote: string | null;
   scenes: PresenterScene[];
+  checklist?: string[];
   sources: Array<{ title: string; publisher?: string; url?: string; retrievedOn?: string }>;
 }
 
@@ -70,7 +71,7 @@ function sourcesFromInput(input: Record<string, any>, sourceIds: Set<string>): P
 
 export function createPresenterDocumentModel(workflowId: string, inputValue: unknown, outputValue: unknown): PresenterDocumentModel {
   const input = inputValue as Record<string, any>;
-  const output = outputValue as Record<string, any>;
+  const output = structuredClone(outputValue) as Record<string, any>;
   const vehicle = input.vehicle as Record<string, unknown>;
   const durationSeconds = output.script.target_duration_seconds as number;
 
@@ -199,6 +200,10 @@ export async function renderPresenterDocumentDocx(model: PresenterDocumentModel)
       const detail = [source.publisher, source.retrievedOn].filter(Boolean).join(" · ");
       children.push(new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: `${source.title}${detail ? ` — ${detail}` : ""}${source.url ? `\n${source.url}` : ""}`, font: "Aptos", size: 16 })] }));
     }
+  }
+  if (model.checklist?.length) {
+    children.push(new Paragraph({ heading: "Heading1", text: "Antes de terminar" }));
+    for (const item of model.checklist) children.push(new Paragraph({ text: `☐ ${item}`, spacing: { after: 80 } }));
   }
   const document = new Document({
     sections: [{

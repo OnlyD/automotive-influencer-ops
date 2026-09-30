@@ -7,3 +7,6 @@ export { parseRunnerCliArguments, runWorkflowCli } from "./cli.js";
 export type { RunnerCliArguments } from "./cli.js";
 export { getRegisteredWorkflow, loadWorkflowRegistry } from "./workflow-registry.js";
 export type { RegisteredWorkflow, WorkflowManifest } from "./workflow-registry.js";
+export { assertWorkflowIntegrity } from "./workflow-integrity.js";
+export { renderPresenterDocumentDocx } from "./presenter-document.js";
+export type { PresenterDocumentModel } from "./presenter-document.js";

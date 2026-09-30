@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive.example.invalid/publication/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "publicationId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "productionId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "artifactId",
+        "version"
+      ]
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "TIKTOK",
+        "INSTAGRAM",
+        "YOUTUBE",
+        "FACEBOOK"
+      ]
+    },
+    "accountRef": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PROGRAMADO",
+        "PUBLICADO"
+      ]
+    },
+    "remoteId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "url": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scheduledAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publishedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "publicationId",
+    "productionId",
+    "package",
+    "platform",
+    "accountRef",
+    "status",
+    "remoteId",
+    "url",
+    "scheduledAt",
+    "publishedAt",
+    "idempotencyKey"
+  ]
+}

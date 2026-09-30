@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "artifactId": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "artifactId",
+          "version"
+        ]
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "artifacts"
+  ]
+}

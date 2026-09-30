@@ -1,0 +1,15 @@
+{
+  "master": {
+    "artifactId": "master_fixture",
+    "version": 1
+  },
+  "clips": [
+    {
+      "clipId": "clip_fixture",
+      "start": 0,
+      "end": 20,
+      "purpose": "Fictional complete idea",
+      "standaloneConfirmed": true
+    }
+  ]
+}

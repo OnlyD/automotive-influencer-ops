@@ -1,6 +1,6 @@
 # Local AI workflows
 
-The AI Runner registers five exact workflow IDs and versions. It validates input and output schemas and then applies workflow-specific reference checks. It rejects unknown workflow/version pairs. Callers must supply an executor adapter; the runner does not construct shell commands or access external services. The optional caller role is a declared workflow context, not authentication.
+The AI Runner registers nine exact workflow IDs and versions. It validates input and output schemas and then applies workflow-specific reference checks. It rejects unknown workflow/version pairs. Callers must supply an executor adapter; the runner does not construct shell commands or access external services. The optional caller role is a declared workflow context, not authentication.
 
 ## Registered workflows
 
@@ -23,3 +23,12 @@ The `createCodexExecutor` adapter invokes `codex exec` with JSONL events, epheme
 The direct interface is `pnpm ai-runner -- <registered-workflow>@<version> --input <file.json|file.yaml>`. Relative input paths resolve from the directory where the operator invoked pnpm. Input files are read from the operator's current machine and passed to the model only when that command is explicitly run.
 
 Tests use a fake CLI executable and make no model calls. Live invocation requires a local Codex CLI login in the dedicated home and may use account/model quota. No real research run was performed. The research prompt requires retrieved sources and instructs the model to return no candidate facts when no authorized retrieval tool is available. Adding a controlled source-retrieval capability remains follow-up work under section 16 of the technical specification.
+
+
+## Production candidates and deterministic work
+
+`adapt-presenter-script@1.0.0` proposes creative changes over an exact normalized script version and locked metadata hash. `propose-clips@1.0.0` proposes complete intervals with pickup warnings; `generate-captions@1.0.0` drafts platform-specific Spanish copy; `analyze-performance@1.0.0` references immutable metric snapshots with their definitions and windows. All remain human-reviewed candidates. Changing a referenced hash, scene, platform or evidence ID fails validation.
+
+`workflows/approved-workflows.json` fingerprints the registered prompts, manifests and schemas. A locally modified definition is rejected until a reviewed technical change updates its version and fingerprint. Source-tree control is still the trust boundary.
+
+The operation worker runs the four registered deterministic workflows under `workflows/deterministic/`. It never constructs caller shell commands or discovers credentials. See `local-production.md` for the queues, media and manual publication handoff. The full real production trial has not been executed.

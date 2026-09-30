@@ -1,7 +1,7 @@
 {
   "name": "automotive-presenter",
-  "version": "0.1.0+codex.20260928014138",
-  "description": "Guiones promocionales y rese\u00f1as detalladas en Word, siempre en espa\u00f1ol.",
+  "version": "0.2.0",
+  "description": "Guiones promocionales y reseñas detalladas en Word, siempre en español.",
   "author": {
     "name": "Automotive Content Ops"
   },
@@ -9,10 +9,10 @@
   "interface": {
     "displayName": "Presentadora Automotriz",
     "shortDescription": "Herramientas de contenido para la presentadora.",
-    "longDescription": "Investiga veh\u00edculos en espa\u00f1ol y prepara Word de guiones promocionales o rese\u00f1as detalladas, siempre con llamadas a la acci\u00f3n. Actualiza herramientas, adapta guiones y prepara grabaciones. El JSON y los esquemas t\u00e9cnicos son internos.",
+    "longDescription": "Investiga vehículos en español y prepara Word de guiones promocionales o reseñas detalladas, siempre con llamadas a la acción. Actualiza herramientas, adapta guiones y prepara grabaciones. El JSON y los esquemas técnicos son internos.",
     "developerName": "Automotive Content Ops",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "Ay\u00fadame a actualizar mis herramientas."
+    "defaultPrompt": "Ayúdame a actualizar mis herramientas."
   }
 }

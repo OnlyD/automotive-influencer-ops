@@ -1,0 +1,26 @@
+{
+  "productionId": "prd_fixture",
+  "artifactId": "plan_fixture",
+  "plan": {
+    "scriptId": "script_fixture",
+    "scriptVersion": 1,
+    "segments": [
+      {
+        "assetId": "asset_fixture",
+        "start": 0,
+        "end": 20,
+        "sceneId": "scene_fixture"
+      }
+    ],
+    "audioMode": "VOICE_OVER",
+    "voiceoverAssetId": "asset_voice_fixture",
+    "subtitles": [
+      {
+        "start": 0,
+        "end": 20,
+        "text": "Este es un ejemplo ficticio. Escríbenos por el medio de prueba. Sigue la cuenta, dale me gusta y comenta."
+      }
+    ],
+    "burnSubtitles": true
+  }
+}

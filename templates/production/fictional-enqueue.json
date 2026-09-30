@@ -1,0 +1,13 @@
+{
+  "workflowId": "create-shooting-plan",
+  "workflowVersion": "1.0.0",
+  "productionId": "prd_fixture",
+  "idempotencyKey": "prd_fixture:create-shooting-plan:script_fixture:1",
+  "input": {
+    "script": {
+      "artifactId": "script_fixture",
+      "version": 1
+    },
+    "artifactId": "shoot_fixture"
+  }
+}

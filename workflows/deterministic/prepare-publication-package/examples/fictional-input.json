@@ -1,0 +1,17 @@
+{
+  "request": {
+    "masterId": "master_fixture",
+    "masterVersion": 1,
+    "platform": "TIKTOK",
+    "accountRef": "account_fixture",
+    "caption": "Contenido ficticio. No publicar.",
+    "hashtags": [
+      "#PruebaFicticia"
+    ],
+    "disclosure": null,
+    "scheduledAt": null,
+    "relatedContentUrl": null,
+    "rightsConfirmed": true
+  },
+  "artifactId": "package_fixture"
+}

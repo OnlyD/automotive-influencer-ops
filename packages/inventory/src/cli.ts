@@ -1,3 +1,5 @@
+import { referenceReviewHash,applyReferenceReview,type ReferenceReview } from "./reference-review.js";
+import { snapshotHash } from "./repository.js";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +43,13 @@ async function run(): Promise<void> {
   const previewStore = new FileImportPreviewStore(resolve(stateDirectory, "previews"));
   const reportsDirectory = resolve(stateDirectory, "reports");
 
+  if(mode === "preview-facts" || mode === "verify-facts") {
+    assertAllowed(options, ["--file","--state-dir",...(mode==="verify-facts"?["--approved-hash","--snapshot-hash"]:[])]);
+    const review=JSON.parse(await readFile(resolveFromRoot(required(options,"--file")),"utf8")) as ReferenceReview;
+    const hash=referenceReviewHash(review),snapshot=snapshotHash(await repository.readSnapshot());
+    if(mode==="verify-facts") await applyReferenceReview(repository,review,required(options,"--approved-hash"),required(options,"--snapshot-hash"));
+    console.log(JSON.stringify({status:mode==="preview-facts"?"REVIEW_READY":"VERIFIED",reviewHash:hash,snapshotHash:snapshot,reviewedBy:review.requestedBy,factIds:review.facts.map(f=>f.vehicleFactId)},null,2));return;
+  }
   if (mode === "preview") {
     assertAllowed(options, ["--file", "--state-dir"]);
     const file = resolveFromRoot(required(options, "--file"));

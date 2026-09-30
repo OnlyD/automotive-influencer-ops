@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "production_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "base_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "artifactId",
+        "version"
+      ]
+    },
+    "locked_facts_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sceneId": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+          },
+          "narration": {
+            "type": "string",
+            "minLength": 1
+          },
+          "visual": {
+            "type": "string",
+            "minLength": 1
+          },
+          "onScreen": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "sceneId"
+        ]
+      },
+      "minItems": 1
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "approval_required": {
+      "const": true
+    }
+  },
+  "required": [
+    "production_id",
+    "base_artifact",
+    "locked_facts_hash",
+    "changes",
+    "warnings",
+    "approval_required"
+  ]
+}

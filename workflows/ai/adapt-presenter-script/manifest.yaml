@@ -1,0 +1,12 @@
+id: adapt-presenter-script
+version: 1.0.0
+owner: technical-operator
+allowed_roles: [presenter, technical-operator]
+input_schema: input.schema.json
+output_schema: output.schema.json
+requires_human_approval: true
+allows_freeform_prompt: false
+editable_fields: [narration, visual, onScreen]
+locked_fields: [facts, sources, commercial, contactMethod, duration, sceneIds, locked_facts_hash]
+execution: {initial: main, revisions: main}
+delegation: {allowed: false, only_when: [], maximum_subagents: 0}

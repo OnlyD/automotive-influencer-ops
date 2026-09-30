@@ -1,0 +1,9 @@
+id: create-shooting-plan
+version: 1.0.0
+type: deterministic
+owner: technical-operator
+allowed_roles: [presenter, technical-operator]
+input_schema: input.schema.json
+output_schema: output.schema.json
+requires_human_approval: true
+allows_freeform_prompt: false

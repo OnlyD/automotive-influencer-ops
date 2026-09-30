@@ -1,0 +1,9 @@
+{
+  "productionId": "prd_fixture",
+  "path": ".local/incoming/fictional-fixture.mp4",
+  "rights": {
+    "origin": "Synthetic fixture",
+    "licenseOrConsent": "Generated fixture without real subjects",
+    "confirmedBy": "fixture_operator"
+  }
+}

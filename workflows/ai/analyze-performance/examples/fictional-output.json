@@ -1,0 +1,18 @@
+{
+  "production_id": "prd_fixture",
+  "observations": [
+    {
+      "text": "The fictional counter is one at the one-hour window.",
+      "snapshotRefs": [
+        "metric_fixture"
+      ]
+    }
+  ],
+  "limitations": [
+    "One fictional observation cannot establish performance or causality."
+  ],
+  "nextExperiments": [
+    "Collect comparable windows with the same metric definition."
+  ],
+  "approval_required": true
+}

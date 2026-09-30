@@ -2,7 +2,7 @@
 
 **Estado:** ejecución autorizada; bootstrap e implementación incremental en curso  
 **Fecha de consolidación:** 27 de septiembre de 2026  
-**Versión de la especificación:** 2.7.0
+**Versión de la especificación:** 2.8.0
 **Nombre lógico del repositorio:** `automotive-content-ops`  
 **Responsable técnico y autoridad de integración:** operador técnico del proyecto  
 **Audiencia principal:** agente Codex que continuará la implementación, operador técnico y futuros mantenedores  
@@ -37,6 +37,7 @@ El acuerdo operativo del proyecto conserva las decisiones de colaboración y pro
 | 2.5.0 | 27-sep-2026 | Requiere integrar dos o tres datos de investigación relevantes en la reseña detallada de la presentadora cuando el paquete tenga información suficiente. |
 | 2.6.0 | 27-sep-2026 | Requiere que el guion promocional consuma investigación separada y use solo dos o tres datos atractivos y pertinentes de la unidad. |
 | 2.7.0 | 27-sep-2026 | Defines the presenter's same-conversation flow: research first, then choose a promotional or detailed script; both scripts include contact and follow/like/comment calls to action. |
+| 2.8.0 | 30-sep-2026 | Adds the supervised local production machinery for promotional and voice-over trials: immutable versions, exact approvals, media intake/rendering, registered worker jobs, n8n, clips/captions and a manual publication handoff. Cloud deployment and live publication remain separately gated. |
 
 ### Punto de reanudación obligatorio en Codex
 
@@ -1823,3 +1824,20 @@ El agente debe comenzar así:
    - punto exacto de reanudación.
 
 Si una parte de la especificación parece ambigua, el agente debe citar la sección afectada, explicar las interpretaciones posibles y detener únicamente la decisión bloqueada. No debe reconstruir el diseño desde cero ni sustituir silenciosamente una decisión ya documentada.
+
+
+## 53. Authorized local pilot machinery (2.8.0)
+
+The operator authorized continuing the local machinery until a supervised full trial can begin, while withholding live account connection, credential creation, AWS deployment and publication. ADR-0012 and ADR-0013 define the implementation decisions; `docs/local-production.md` documents the interface and `docs/e2e-readiness.md` records the exact trial boundary.
+
+- `services/api` implements the operator-controlled local simulator and CLI. Role routing is not authentication. Fixed presenter routes support creative adaptation, creative approval, approved recording-plan requests, intake and Spanish Word delivery on the same controlled machine.
+- The CLI/server require a canonical inventory vehicle. The operator previews/applies an exact human factual review, then binds selected script fact values/units/sources to hashes of canonical verified inventory facts. Changed identity, facts, sources or unavailable inventory block reuse; candidate registration does not verify data.
+- Versioned production, artifact, approval, job, media, publication and metric contracts live in `packages/contracts`. Mutable review status is separate from the immutable artifact content hash; approval authority remains the exact-version approval ledger. A newly approved replacement supersedes the prior official version and invalidates dependent preparation gates; an unapproved candidate cannot replace it.
+- The local operation store serializes writes, persists leases/retries/idempotency/audit events and supports explicit hash-verified backup/restore. Keep all runtime state and recordings ignored. This local adapter does not replace the required permanent cloud state for independent remote operations.
+- Shooting plans are deterministic projections of approved scripts, registered under `workflows/deterministic/create-shooting-plan@1.0.0`; they introduce no new claims. AI adaptation, clip proposals, captions and metric analysis remain separately registered candidate workflows.
+- `packages/media` copies/probes/hashes originals and renders explicit approved scene timelines as vertical H.264/AAC masters. Source audio and separate voice-over are supported; still images require separate narration. Subtitles retain approved narration. A human reviews actual speech, rights, framing, readability and commercial/factual meaning.
+- Deterministic clipping accepts only complete operator-reviewed intervals; factual/commercial scenes cannot be cut arbitrarily and commercial clips retain the complete validity/closing or need separately reviewed pickups. No clip quota is guaranteed.
+- Publication packages are specific to an intended platform and account reference. The initial implementation uses the manual handoff allowed in section 39.4: export approved media/copy, upload only after explicit authorization, then record an operator-attested remote receipt. Export and local scheduling intent do not publish or autonomously schedule a remote post.
+- Commercial confirmation and availability are reviewed on publication day, using UTC in the local adapter; an expired/future confirmation cannot pass. Changed or refreshed conditions create a new script version and renewed dependent reviews.
+- The pinned n8n Compose workflow remains inactive until the operator explicitly enables it. It calls only the controlled local worker endpoint and mounts no Codex or social credentials.
+- Component and synthetic-media checks may run during engineering. The full real trial remains pending, with source/media/rights/contact/account setup and final publication approval. Increment F retains the unresolved cloud region/account, identity, retention and off-device backup requirements; automatic publishing retains provider/platform approval requirements.

@@ -1,0 +1,12 @@
+{
+  "productionId": "prd_fixture",
+  "vehicleId": "veh_fixture",
+  "title": "Fictional pilot only",
+  "mode": "VOICE_OVER",
+  "targetPlatforms": [
+    "TIKTOK",
+    "INSTAGRAM",
+    "YOUTUBE",
+    "FACEBOOK"
+  ]
+}

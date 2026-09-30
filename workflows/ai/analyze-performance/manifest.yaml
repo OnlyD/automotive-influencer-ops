@@ -1,0 +1,12 @@
+id: analyze-performance
+version: 1.0.0
+owner: technical-operator
+allowed_roles: [technical-operator]
+input_schema: input.schema.json
+output_schema: output.schema.json
+requires_human_approval: true
+allows_freeform_prompt: false
+editable_fields: [creative_copy]
+locked_fields: [production_id, sources, facts, commercial, accountRef, snapshots]
+execution: {initial: main, revisions: main}
+delegation: {allowed: false, only_when: [], maximum_subagents: 0}

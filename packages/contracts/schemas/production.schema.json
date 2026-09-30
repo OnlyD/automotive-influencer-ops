@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive.example.invalid/production/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "productionId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "vehicleId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "PROMO",
+        "VOICE_OVER"
+      ]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "BORRADOR",
+        "INVESTIGANDO",
+        "DATOS_VERIFICADOS",
+        "GUION_GENERADO",
+        "REVISION_PRESENTADORA",
+        "APROBADO",
+        "LISTO_PARA_GRABAR",
+        "GRABADO",
+        "EDITADO",
+        "LISTO",
+        "PROGRAMADO",
+        "PUBLICADO",
+        "MEDIDO"
+      ]
+    },
+    "targetPlatforms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "TIKTOK",
+          "INSTAGRAM",
+          "YOUTUBE",
+          "FACEBOOK"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "createdBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "presenter",
+            "technical-operator",
+            "worker"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "role",
+        "name"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "vehicleIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "year": {
+          "type": "integer",
+          "minimum": 1950,
+          "maximum": 2100
+        },
+        "make": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "market": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "year",
+        "make",
+        "model",
+        "trim",
+        "market"
+      ]
+    }
+  },
+  "required": [
+    "productionId",
+    "vehicleId",
+    "title",
+    "mode",
+    "state",
+    "targetPlatforms",
+    "createdBy",
+    "createdAt"
+  ]
+}

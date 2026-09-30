@@ -1,3 +1,3 @@
-# Recording preparation skill — placeholder
+# Recording preparation skill
 
-Present the approved recording plan in clear, natural Spanish. All interaction with the influencer must always be in Spanish. Implementation pending.
+Project the exact approved script into a deterministic shooting-plan candidate and a Spanish Word document. Current factual, creative and applicable commercial reviews are required; placeholders block preparation. See `SKILL.md` and `docs/local-production.md`.

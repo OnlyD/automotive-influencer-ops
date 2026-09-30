@@ -1,0 +1,16 @@
+{
+  "production_id": "prd_fixture",
+  "base_artifact": {
+    "artifactId": "script_fixture",
+    "version": 1
+  },
+  "locked_facts_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "changes": [
+    {
+      "sceneId": "scene_fixture",
+      "visual": "Tarjeta ficticia"
+    }
+  ],
+  "warnings": [],
+  "approval_required": true
+}

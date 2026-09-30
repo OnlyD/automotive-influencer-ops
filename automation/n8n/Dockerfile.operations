@@ -1,0 +1,15 @@
+FROM node:20-bookworm-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY packages ./packages
+COPY apps ./apps
+COPY services ./services
+COPY workflows ./workflows
+RUN pnpm install --frozen-lockfile && pnpm build
+ARG SOURCE_COMMIT
+ENV OPS_SOURCE_COMMIT=$SOURCE_COMMIT
+USER node
+EXPOSE 4318
+CMD ["node", "services/api/dist/src/server.js"]

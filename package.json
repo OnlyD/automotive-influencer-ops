@@ -7,14 +7,18 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm --recursive --filter './packages/*' --filter './apps/*' build",
-    "typecheck": "pnpm build && pnpm --recursive --filter './packages/*' --filter './apps/*' typecheck",
-    "test": "pnpm build && pnpm --recursive --filter './packages/*' --filter './apps/*' typecheck && pnpm --recursive --filter './packages/*' --filter './apps/*' test",
+    "build": "pnpm --recursive --filter './packages/*' --filter './apps/*' --filter './services/*' build",
+    "typecheck": "pnpm build && pnpm --recursive --filter './packages/*' --filter './apps/*' --filter './services/*' typecheck",
+    "test": "pnpm build && pnpm --recursive --filter './packages/*' --filter './apps/*' --filter './services/*' typecheck && pnpm --recursive --filter './packages/*' --filter './apps/*' --filter './services/*' test",
     "inventory": "pnpm --filter @automotive/inventory inventory",
-    "ai-runner": "pnpm --filter @automotive/ai-runner workflow"
+    "ai-runner": "pnpm --filter @automotive/ai-runner workflow",
+    "operations": "pnpm --filter @automotive/operations operations",
+    "operations:serve": "pnpm --filter @automotive/operations serve",
+    "format:check": "prettier --check \"services/api/{src,test}/**/*.ts\" \"packages/media/{src,test}/**/*.ts\" packages/contracts/src/production.ts packages/contracts/src/operations.ts apps/ai-runner/src/workflow-integrity.ts packages/inventory/src/reference-review.ts packages/inventory/test/reference-review.test.ts"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
+    "prettier": "3.6.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }

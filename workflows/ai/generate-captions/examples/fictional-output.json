@@ -1,0 +1,15 @@
+{
+  "production_id": "prd_fixture",
+  "platform": "TIKTOK",
+  "caption": "Ejemplo ficticio para pruebas. Escríbenos por el medio de prueba, sigue la cuenta y comenta.",
+  "hashtags": [
+    "#PruebaFicticia"
+  ],
+  "disclosure": null,
+  "factRefs": [],
+  "warnings": [
+    "Fictional example; do not publish."
+  ],
+  "approval_required": true,
+  "publishable": false
+}

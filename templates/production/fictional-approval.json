@@ -1,0 +1,9 @@
+{
+  "artifact": {
+    "artifactId": "script_fixture",
+    "version": 1
+  },
+  "type": "FACTUAL",
+  "decision": "APPROVED",
+  "notes": "Review the supplied source, exact vehicle applicability, narration and quantities. Fictional template only."
+}

@@ -1,3 +1,3 @@
-# Script adaptation skill — placeholder
+# Script adaptation skill
 
-Guided adaptation of creative fields in a script under review while preserving locked facts. All interaction and output presented to the influencer must always be in Spanish. Implementation pending.
+The local pilot creates an immutable candidate from an exact script version, preserves locked evidence and presents a Spanish Word document with the creative changes. New approvals are required before an approved replacement supersedes the previous version. See `SKILL.md` and `docs/local-production.md`.

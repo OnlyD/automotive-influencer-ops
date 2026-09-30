@@ -1,0 +1,156 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automotive.example.invalid/artifact-version/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "artifactId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "productionId": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "parentVersion": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "RESEARCH",
+        "SCRIPT",
+        "SHOOTING_PLAN",
+        "RENDER_PLAN",
+        "MASTER",
+        "CLIP",
+        "PUBLICATION_PACKAGE",
+        "PERFORMANCE_REPORT"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "lockedFactsHash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "parents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "artifactId": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "artifactId",
+          "version"
+        ]
+      },
+      "minItems": 0
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workflowId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workflowVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "sourceCommit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "runner": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "workflowId",
+        "workflowVersion",
+        "sourceCommit",
+        "runner"
+      ]
+    },
+    "createdBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "presenter",
+            "technical-operator",
+            "worker"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "role",
+        "name"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "CANDIDATE",
+        "IN_REVIEW",
+        "APPROVED",
+        "REJECTED",
+        "SUPERSEDED"
+      ]
+    }
+  },
+  "required": [
+    "artifactId",
+    "version",
+    "productionId",
+    "parentVersion",
+    "kind",
+    "payload",
+    "hash",
+    "lockedFactsHash",
+    "parents",
+    "provenance",
+    "createdBy",
+    "createdAt",
+    "status"
+  ]
+}

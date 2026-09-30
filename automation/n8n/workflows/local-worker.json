@@ -1,0 +1,90 @@
+{
+  "name": "Approved local worker polling",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual",
+      "name": "Run one local job",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "poll",
+      "name": "Poll when explicitly activated",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://operations:4318/worker/tick",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "id": "tick",
+      "name": "Execute only a registered leased job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Run one local job": {
+      "main": [
+        [
+          {
+            "node": "Execute only a registered leased job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll when explicitly activated": {
+      "main": [
+        [
+          {
+            "node": "Execute only a registered leased job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none"
+  },
+  "pinData": {},
+  "id": "automotiveLocalWorkerV1",
+  "versionId": "a21c7343-08c5-44aa-a0ec-b46b46a71e40"
+}

@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "production_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+    },
+    "master": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "artifactId",
+        "version"
+      ]
+    },
+    "clips": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "clipId": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hookText": {
+            "type": "string",
+            "minLength": 1
+          },
+          "closingText": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requiresPickup": {
+            "type": "boolean"
+          },
+          "factRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-zA-Z0-9_-]{0,95}$"
+            },
+            "minItems": 0
+          },
+          "preferredPlatforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TIKTOK",
+                "INSTAGRAM",
+                "YOUTUBE",
+                "FACEBOOK"
+              ]
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "clipId",
+          "start",
+          "end",
+          "purpose",
+          "hookText",
+          "closingText",
+          "requiresPickup",
+          "factRefs",
+          "preferredPlatforms"
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 6
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "approval_required": {
+      "const": true
+    },
+    "publishable": {
+      "const": false
+    }
+  },
+  "required": [
+    "production_id",
+    "master",
+    "clips",
+    "warnings",
+    "approval_required",
+    "publishable"
+  ]
+}

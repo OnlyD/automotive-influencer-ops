@@ -20,6 +20,41 @@ function validatePresenterClosingCta(
 
 function assertWorkflowSemantics(workflowId: string, input: Record<string, any>, output: Record<string, any>): void {
   const errors: string[] = [];
+  if (["propose-clips", "generate-captions", "analyze-performance"].includes(workflowId)) {
+    if (output.production_id !== input.production_id) errors.push("Candidate must preserve the production identity");
+  }
+  if (workflowId === "propose-clips") {
+    if (output.master.artifactId !== input.master.artifactId || output.master.version !== input.master.version) errors.push("Clip plan must reference the exact master");
+    if (output.clips.length > input.targetClipCount) errors.push("Clip plan exceeds the approved target count");
+    const facts = new Set(input.script.facts.map((fact: {id:string}) => fact.id));
+    const ids = new Set<string>();
+    for (const clip of output.clips) {
+      if (ids.has(clip.clipId)) errors.push("Duplicate clip identifier"); ids.add(clip.clipId);
+      if (clip.start < 0 || clip.end > input.masterDuration || clip.end-clip.start < 15 || clip.end-clip.start > 35) errors.push("Clip must be a 15–35 second interval inside the exact master");
+      if (clip.factRefs.some((id:string) => !facts.has(id))) errors.push("Clip references an unknown fact");
+    }
+  }
+  if (workflowId === "generate-captions") {
+    if (output.platform !== input.platform || output.disclosure !== input.disclosure) errors.push("Caption must preserve platform and supplied disclosure");
+    const facts = new Set(input.script.facts.map((fact:{id:string}) => fact.id));
+    if (output.factRefs.some((id:string) => !facts.has(id))) errors.push("Caption references an unknown fact");
+    const suppliedNumbers = new Set((JSON.stringify({narration:input.script.scenes.map((scene:{narration:string})=>scene.narration),facts:input.script.facts,commercial:input.script.commercial,contactMethod:input.script.contactMethod}).match(/\b\d+(?:[.,]\d+)?\b/g) ?? []) as string[]);
+    for (const number of output.caption.match(/\b\d+(?:[.,]\d+)?\b/g) ?? []) if (!suppliedNumbers.has(number)) errors.push("Caption introduces a number absent from the approved script");
+  }
+  if (workflowId === "analyze-performance") {
+    const snapshots = new Set(input.snapshots.map((snapshot:{snapshotId:string}) => snapshot.snapshotId));
+    for (const observation of output.observations) if (observation.snapshotRefs.some((id:string) => !snapshots.has(id))) errors.push("Observation references an unknown metric snapshot");
+  }
+  if (workflowId === "adapt-presenter-script") {
+    if (output.production_id !== input.production_id || (output.base_artifact.artifactId !== input.base_artifact.artifactId || output.base_artifact.version !== input.base_artifact.version) || output.locked_facts_hash !== input.locked_facts_hash) errors.push("Revision must preserve the exact base artifact and locked facts hash");
+    const known = new Set(input.base_script.scenes.map((scene: {id:string}) => scene.id));
+    const changed = new Set<string>();
+    for (const change of output.changes as Array<{sceneId:string;narration?:string;visual?:string;onScreen?:string}>) {
+      if (!known.has(change.sceneId) || changed.has(change.sceneId)) errors.push("Revision references an unknown or duplicate scene");
+      changed.add(change.sceneId);
+      if (Object.keys(change).length < 2) errors.push("Revision must change at least one creative field");
+    }
+  }
   if (workflowId === "research-vehicle") {
     const requested = new Set(input.research_brief.requested_fields as string[]);
     const sourceIds = new Set((output.sources as Array<{ sourceId: string }>).map((source) => source.sourceId));

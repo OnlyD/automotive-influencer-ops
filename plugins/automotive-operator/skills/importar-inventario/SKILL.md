@@ -1,8 +1,10 @@
 ---
 name: importar-inventario
-description: Preview or apply an inventory import when the local inventory workflow is implemented. This workflow is currently a placeholder.
+description: Preview a local CSV inventory import and apply only the exact operator-approved preview ID and hash.
 ---
 
-# Inventory import (placeholder)
+# Import local inventory
 
-Explain that the local inventory importer is not implemented yet. Do not parse, save, or apply inventory data. Never request or commit real inventory records; use fictional fixtures only once the versioned import contract and preview/apply workflow are available. The operator-facing response is in English.
+Use English for technical operator interaction. Read `docs/inventory-import.md` for the implemented CSV mapping, validation and command interface. Use fictional fixtures in repository tests; keep real source files and runtime state ignored.
+
+Run preview first using the existing controlled inventory CLI. Present creates, updates, rejected rows and warnings. Apply only after the operator approves the exact preview ID/hash, using the same unchanged source and repository snapshot. Do not treat preview as mutation, import XLSX through the CSV path, expose VINs, invent column mappings or connect a dealership account.
